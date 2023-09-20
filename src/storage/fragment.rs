@@ -72,6 +72,14 @@ impl Fragment {
         self.state == FragmentState::WaitingReview
     }
 
+    pub fn is_editable(&self) -> bool {
+        self.is_draft() || self.is_waiting_changes()
+    }
+
+    pub fn is_waiting_changes(&self) -> bool {
+        self.state == FragmentState::WaitingChanges
+    }
+
     pub fn is_draft(&self) -> bool {
         self.state == FragmentState::Draft
     }

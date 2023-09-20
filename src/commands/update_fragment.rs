@@ -52,8 +52,10 @@ impl CommandHandler for UpdateFragmentCommand {
             .into());
         }
 
-        if !fragment.is_draft() {
-            return Err(UpdateFragmentCommandError::InvalidState("Fragment is not a draft").into());
+        if !fragment.is_editable() {
+            return Err(
+                UpdateFragmentCommandError::InvalidState("Fragment cannot be edited").into(),
+            );
         }
 
         Ok(fragment

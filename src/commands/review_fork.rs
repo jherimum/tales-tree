@@ -1,6 +1,3 @@
-use chrono::Utc;
-use tap::TapFallible;
-
 use super::{CommandBusError, CommandHandler, CommandHandlerContext};
 use crate::{
     id::Id,
@@ -10,6 +7,8 @@ use crate::{
     },
     User,
 };
+use chrono::Utc;
+use tap::TapFallible;
 
 pub struct ReviewForkCommand {
     pub review_id: Id,
