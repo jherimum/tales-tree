@@ -57,7 +57,7 @@ impl CommandHandler for ReviewForkCommand {
             .into());
         }
 
-        let parent = frag.parent(ctx.pool()).await?.unwrap();
+        let parent = frag.get_parent(ctx.pool()).await?.unwrap();
 
         if !parent.is_author(&user) {
             return Err(ReviewForkCommandError::InvalidState(

@@ -24,7 +24,7 @@ impl Path {
     }
 }
 
-#[derive(Debug, Builder, Clone, FromRow, Getters, Setters)]
+#[derive(Debug, Builder, Clone, FromRow, Getters, Setters, PartialEq, Eq)]
 #[builder(setter(into))]
 #[setters(prefix = "set_")]
 #[setters(into)]
@@ -92,11 +92,11 @@ impl Fragment {
         self.parent_id.is_some()
     }
 
-    pub async fn parent<'e, E: PgExecutor<'e>>(
+    pub async fn get_parent<'e, E: PgExecutor<'e>>(
         &self,
         exec: E,
     ) -> Result<Option<Self>, StorageError> {
-        query_as("SELECT f from fragments WHERE id = $1")
+        query_as("SELECT * from fragments WHERE id = $1")
             .bind(self.parent_id)
             .fetch_optional(exec)
             .await
@@ -107,7 +107,7 @@ impl Fragment {
         &self,
         exec: E,
     ) -> Result<Vec<Self>, StorageError> {
-        query_as("SELECT f from fragments WHERE parent_id = $1")
+        query_as("SELECT * from fragments WHERE parent_id = $1")
             .bind(self.id)
             .fetch_all(exec)
             .await
@@ -118,7 +118,7 @@ impl Fragment {
         exec: E,
         id: &Id,
     ) -> Result<Option<Self>, StorageError> {
-        query_as("SELECT f from fragments WHERE id = $1")
+        query_as("SELECT * from fragments  WHERE id = $1")
             .bind(id)
             .fetch_optional(exec)
             .await
