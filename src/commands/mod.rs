@@ -1,18 +1,18 @@
 pub mod create_fragment;
 pub mod fork_fragment;
 pub mod publish_fragment;
+pub mod review_fork;
 pub mod update_fragment;
 
-use std::fmt::{Debug, Display};
-
-//use self::create_fragment::CreateFragmentCommandError;
 use crate::{actor::Actor, storage::StorageError};
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
+use std::fmt::{Debug, Display};
 use tap::TapFallible;
 
 use self::{
     create_fragment::CreateFragmentCommandError, fork_fragment::ForkFragmentCommandError,
-    publish_fragment::PublishFragmentCommandError, update_fragment::UpdateFragmentCommandError,
+    publish_fragment::PublishFragmentCommandError, review_fork::ReviewForkCommandError,
+    update_fragment::UpdateFragmentCommandError,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -28,6 +28,9 @@ pub enum CommandBusError {
 
     #[error(transparent)]
     UpdateFragmentCommand(#[from] UpdateFragmentCommandError),
+
+    #[error(transparent)]
+    ReviewForkCommand(#[from] ReviewForkCommandError),
 
     #[error(transparent)]
     Storage(#[from] StorageError),
@@ -60,11 +63,24 @@ impl CommandBus {
             tracing::error!("Actor [{actor:?}] is not allowed to execute command [{command:?}]");
             return Err(CommandBusError::ActorNotSupported(actor.clone()));
         };
-        command
-            .handle(&mut CommandHandlerContext::new(&self.pool, &actor).await?)
+
+        let ctx = &mut CommandHandlerContext::new(&self.pool, &actor).await?;
+        let result = command
+            .handle(ctx)
             .await
             .tap_ok(|_| tracing::info!("Command [{command:?}] handled successfully"))
-            .tap_err(|e| tracing::error!("Failed to handle command [{command:?}]: {e}"))
+            .tap_err(|e| tracing::error!("Failed to handle command [{command:?}]: {e}"));
+
+        match result {
+            Ok(result) => {
+                ctx.tx().as_mut().commit().await?;
+                Ok(result)
+            }
+            Err(e) => {
+                ctx.tx.as_mut().rollback().await?;
+                Err(e)
+            }
+        }
     }
 }
 

@@ -61,7 +61,7 @@ impl CommandHandler for PublishFragmentCommand {
         }
 
         let state = if fragment.is_fork() {
-            FragmentState::WaitingForReview
+            FragmentState::WaitingReview
         } else {
             FragmentState::Published
         };

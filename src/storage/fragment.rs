@@ -1,3 +1,4 @@
+use super::review::ReviewAction;
 use super::{Entity, StorageError};
 use crate::{DateTime, Id, User};
 use derive_builder::Builder;
@@ -65,6 +66,10 @@ impl Fragment {
 
     pub fn is_published(&self) -> bool {
         self.state == FragmentState::Published
+    }
+
+    pub fn is_waiting_review(&self) -> bool {
+        self.state == FragmentState::WaitingReview
     }
 
     pub fn is_draft(&self) -> bool {
@@ -153,5 +158,17 @@ impl Fragment {
 pub enum FragmentState {
     Draft,
     Published,
-    WaitingForReview,
+    WaitingReview,
+    Rejected,
+    WaitingChanges,
+}
+
+impl From<ReviewAction> for FragmentState {
+    fn from(value: ReviewAction) -> Self {
+        match value {
+            ReviewAction::Approve => FragmentState::Published,
+            ReviewAction::Reject => FragmentState::Rejected,
+            ReviewAction::RequestChanges => FragmentState::WaitingChanges,
+        }
+    }
 }

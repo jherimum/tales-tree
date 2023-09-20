@@ -16,9 +16,6 @@ pub struct ForkFragmentCommand {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ForkFragmentCommandError {
-    #[error("Fragment not found: {0}")]
-    FragmentNotFound(Id),
-
     #[error("Parent fragment not found: {0}")]
     ParentFragmentNotFound(Id),
 

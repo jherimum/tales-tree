@@ -20,27 +20,12 @@ impl Into<Id> for User {
     }
 }
 
-pub struct Review {
-    id: Id,
-    fragment_id: Id,
-    reviewer: Id,
-    comment: Option<String>,
-    action: ReviewAction,
-    created_at: DateTime,
-}
-
 pub struct Comment {
     id: Id,
     review: Id,
     user: Id,
     comment: String,
     created_at: DateTime,
-}
-
-pub enum ReviewAction {
-    Approve,
-    Reject,
-    RequestChanges,
 }
 
 //social
