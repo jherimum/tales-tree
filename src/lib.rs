@@ -3,10 +3,11 @@ pub mod commands;
 pub mod id;
 pub mod storage;
 
+use chrono::NaiveDateTime;
 use derive_getters::Getters;
 use id::Id;
 
-pub type DateTime = chrono::DateTime<chrono::Utc>;
+pub type DateTime = NaiveDateTime;
 
 #[derive(Debug, Getters, Clone)]
 pub struct User {
@@ -21,7 +22,7 @@ impl Into<Id> for User {
 
 pub struct Review {
     id: Id,
-    tale: Id,
+    fragment_id: Id,
     reviewer: Id,
     comment: Option<String>,
     action: ReviewAction,
@@ -46,13 +47,13 @@ pub enum ReviewAction {
 pub struct Watch {
     id: Id,
     user: Id,
-    tale: Id,
+    fragment_id: Id,
 }
 
 pub struct Like {
     id: Id,
     user: Id,
-    tale: Id,
+    fragment_id: Id,
 }
 
 pub struct Follow {

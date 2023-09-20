@@ -22,3 +22,6 @@ derive-getters = "0.3"
 derive_setters = "0.1"
 serde = { version = "1", features = ["derive"] }
 async-trait = "0.1"
+anyhow = "1"
+tap = "1"
+tracing = "0.1"

@@ -1,19 +1,29 @@
+use anyhow::bail;
+
 use crate::User;
 
-#[derive(Debug, thiserror::Error)]
-#[error("{0}")]
-pub struct ActorConversionError(&'static str);
-
+#[derive(Debug, Clone)]
 pub enum Actor {
     User(User),
     System,
 }
 
-impl Into<Option<User>> for &Actor {
-    fn into(self) -> Option<User> {
+impl Actor {
+    pub fn is_user(&self) -> bool {
         match self {
-            Actor::User(u) => Some(u.clone()),
-            _ => None,
+            Actor::User(_) => true,
+            _ => false,
+        }
+    }
+}
+
+impl TryFrom<&Actor> for User {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &Actor) -> Result<Self, Self::Error> {
+        match value {
+            Actor::User(u) => Ok(u.clone()),
+            _ => bail!("Actor is not a user"),
         }
     }
 }
