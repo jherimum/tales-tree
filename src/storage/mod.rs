@@ -2,6 +2,7 @@ pub mod follow;
 pub mod fragment;
 pub mod like;
 pub mod review;
+pub mod user;
 
 use crate::Id;
 

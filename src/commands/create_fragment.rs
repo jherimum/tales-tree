@@ -1,8 +1,11 @@
 use super::{CommandBusError, CommandHandler, CommandHandlerContext};
 use crate::{
     actor::Actor,
-    storage::fragment::{Fragment, FragmentBuilder, FragmentState},
-    Id, User,
+    storage::{
+        fragment::{Fragment, FragmentBuilder, FragmentState},
+        user::User,
+    },
+    Id,
 };
 use chrono::Utc;
 use derive_builder::Builder;

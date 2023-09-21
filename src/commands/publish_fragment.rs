@@ -2,8 +2,10 @@ use super::{CommandBusError, CommandHandler, CommandHandlerContext};
 use crate::{
     actor::Actor,
     id::Id,
-    storage::fragment::{Fragment, FragmentState},
-    User,
+    storage::{
+        fragment::{Fragment, FragmentState},
+        user::User,
+    },
 };
 use anyhow::Context;
 use chrono::Utc;

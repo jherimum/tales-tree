@@ -2,8 +2,7 @@ use super::{CommandBusError, CommandHandler, CommandHandlerContext};
 use crate::{
     actor::Actor,
     id::Id,
-    storage::{fragment::Fragment, StorageError},
-    User,
+    storage::{fragment::Fragment, user::User, StorageError},
 };
 use chrono::Utc;
 use tap::TapFallible;

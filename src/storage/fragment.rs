@@ -1,6 +1,7 @@
 use super::review::ReviewAction;
+use super::user::User;
 use super::{Entity, StorageError};
-use crate::{DateTime, Id, User};
+use crate::{DateTime, Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use derive_setters::Setters;

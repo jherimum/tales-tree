@@ -4,8 +4,8 @@ use crate::{
     storage::{
         fragment::{Fragment, FragmentState},
         review::{Review, ReviewAction, ReviewBuilder},
+        user::User,
     },
-    User,
 };
 use chrono::Utc;
 use tap::TapFallible;

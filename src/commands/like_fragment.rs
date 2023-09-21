@@ -5,8 +5,8 @@ use crate::{
     storage::{
         fragment::Fragment,
         like::{Like, LikeBuilder},
+        user::User,
     },
-    User,
 };
 use chrono::Utc;
 use tap::TapFallible;
@@ -57,7 +57,6 @@ impl CommandHandler for LikeOrDislikeFragmentCommand {
 
         Ok(match (self.action, actual_like) {
             (LikeAction::Like, None) => LikeBuilder::default()
-                .id(Id::new())
                 .fragment_id(*frag.id())
                 .user_id(user)
                 .created_at(Utc::now().naive_utc())

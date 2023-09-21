@@ -1,6 +1,6 @@
 use anyhow::bail;
 
-use crate::User;
+use crate::storage::user::User;
 
 #[derive(Debug, Clone)]
 pub enum Actor {

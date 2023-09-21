@@ -2,8 +2,10 @@ use super::{CommandBusError, CommandHandler, CommandHandlerContext};
 use crate::{
     actor::Actor,
     id::Id,
-    storage::fragment::{Fragment, FragmentBuilder, FragmentState},
-    User,
+    storage::{
+        fragment::{Fragment, FragmentBuilder, FragmentState},
+        user::User,
+    },
 };
 use chrono::Utc;
 use tap::TapFallible;
@@ -34,7 +36,7 @@ impl CommandHandler for ForkFragmentCommand {
         &self,
         ctx: &'ctx mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
-        let author = User::try_from(ctx.actor())?;
+        let user = User::try_from(ctx.actor())?;
         let parent_frag = Fragment::find(ctx.pool(), &self.parent_fragment_id)
             .await
             .tap_err(|e| {
@@ -50,15 +52,22 @@ impl CommandHandler for ForkFragmentCommand {
             );
         }
 
-        if parent_frag.is_author(&author) {
+        if parent_frag.is_author(&user) {
             return Err(
                 ForkFragmentCommandError::Forbidden("Cannot fork your own fragment").into(),
             );
         }
 
+        if !user.is_friend(ctx.pool(), *parent_frag.author_id()).await? {
+            return Err(ForkFragmentCommandError::Forbidden(
+                "You must be friend with the fragment author",
+            )
+            .into());
+        }
+
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)
-            .author_id(author)
+            .author_id(user)
             .content(self.content.clone())
             .parent_id(Some(self.parent_fragment_id))
             .state(FragmentState::Draft)
