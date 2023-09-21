@@ -10,7 +10,7 @@ use sqlx::{FromRow, PgExecutor};
 pub struct Review {
     id: Id,
     fragment_id: Id,
-    user_id: Id,
+    reviewer_id: Id,
     action: ReviewAction,
     comment: Option<String>,
     created_at: DateTime,

@@ -19,30 +19,3 @@ impl Into<Id> for User {
         self.id
     }
 }
-
-pub struct Comment {
-    id: Id,
-    review: Id,
-    user: Id,
-    comment: String,
-    created_at: DateTime,
-}
-
-//social
-pub struct Watch {
-    id: Id,
-    user: Id,
-    fragment_id: Id,
-}
-
-pub struct Like {
-    id: Id,
-    user: Id,
-    fragment_id: Id,
-}
-
-pub struct Follow {
-    id: Id,
-    follower: Id,
-    followee: Id,
-}

@@ -69,7 +69,7 @@ impl CommandHandler for ReviewForkCommand {
         let review = ReviewBuilder::default()
             .id(self.review_id)
             .fragment_id(self.fragment_id)
-            .user_id(*user.id())
+            .reviewer_id(*user.id())
             .comment(self.comment.clone())
             .created_at(Utc::now().naive_utc())
             .action(self.action)

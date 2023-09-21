@@ -1,5 +1,7 @@
 pub mod create_fragment;
+pub mod follow_user;
 pub mod fork_fragment;
+pub mod like_fragment;
 pub mod publish_fragment;
 pub mod review_fork;
 pub mod update_fragment;
@@ -11,12 +13,16 @@ use tap::TapFallible;
 
 use self::{
     create_fragment::CreateFragmentCommandError, fork_fragment::ForkFragmentCommandError,
+    like_fragment::LikeOrDislikeFragmentCommandError,
     publish_fragment::PublishFragmentCommandError, review_fork::ReviewForkCommandError,
     update_fragment::UpdateFragmentCommandError,
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum CommandBusError {
+    #[error(transparent)]
+    LikeFragmentCommand(#[from] LikeOrDislikeFragmentCommandError),
+
     #[error(transparent)]
     CreateFragmentCommand(#[from] CreateFragmentCommandError),
 
