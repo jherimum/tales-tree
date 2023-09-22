@@ -1,9 +1,11 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
+    events::FragmentDislikedEvent,
     id::Id,
     storage::{fragment::Fragment, like::Like, user::User},
 };
+use chrono::Utc;
 use tap::TapFallible;
 
 impl Command for DislikeFragmentCommand {}
@@ -24,12 +26,12 @@ pub enum DislikeFragmentCommandError {
 
 #[async_trait::async_trait]
 impl CommandHandler for DislikeFragmentCommand {
-    type Output = bool;
+    type Event = FragmentDislikedEvent;
 
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
         let frag = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
             DislikeFragmentCommandError::FragmentNotFound(self.fragment_id),
@@ -44,8 +46,15 @@ impl CommandHandler for DislikeFragmentCommand {
             .tap_err(|e| tracing::error!("Failed to find like: {}", e))?;
 
         match actual_like {
-            Some(l) => Ok(l.delete(ctx.tx().as_mut()).await?),
-            None => Ok(false),
+            Some(l) => match l.delete(ctx.tx().as_mut()).await? {
+                true => Ok(Some(FragmentDislikedEvent {
+                    fragment_id: self.fragment_id,
+                    user_id: *user.id(),
+                    timestamp: Utc::now().naive_utc(),
+                })),
+                false => Ok(None),
+            },
+            None => Ok(None),
         }
     }
 

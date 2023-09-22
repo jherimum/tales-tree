@@ -1,6 +1,7 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
+    events::FragmentPublishedEvent,
     id::Id,
     storage::{
         fragment::{Fragment, FragmentState},
@@ -32,7 +33,7 @@ pub enum PublishFragmentCommandError {
 
 #[async_trait::async_trait]
 impl CommandHandler for PublishFragmentCommand {
-    type Output = Fragment;
+    type Event = FragmentPublishedEvent;
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
@@ -41,7 +42,7 @@ impl CommandHandler for PublishFragmentCommand {
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user_actor = User::try_from(ctx.actor())?;
 
         let fragment = Fragment::find(ctx.pool(), &self.fragment_id)
@@ -76,10 +77,21 @@ impl CommandHandler for PublishFragmentCommand {
             .set_last_modified_at(Utc::now().naive_utc())
             .update(ctx.tx().as_mut())
             .await
+            .map(Into::into)
             .context(format!("Failed to update fragment [{}]", self.fragment_id))?)
     }
 
     fn command_type(&self) -> CommandType {
         CommandType::PublishFragment
+    }
+}
+
+impl From<Fragment> for Option<FragmentPublishedEvent> {
+    fn from(value: Fragment) -> Self {
+        Some(FragmentPublishedEvent {
+            fragment_id: *value.id(),
+            user_id: *value.author_id(),
+            timestamp: *value.last_modified_at(),
+        })
     }
 }

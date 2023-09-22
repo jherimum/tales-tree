@@ -1,10 +1,32 @@
-CREATE TYPE fragment_state AS ENUM ('draft', 'published', 'waiting_review', 'rejected', 'rejected', 'waiting_changes');
+CREATE TYPE fragment_state AS ENUM ('draft', 'published', 'waiting_review', 'rejected', 'waiting_changes');
 CREATE TYPE review_action AS ENUM ('approve', 'reject', 'request_changes');
 CREATE TYPE actor_type AS ENUM ('system', 'user');
+CREATE TYPE event_type AS ENUM (
+    'fragment_created', 
+    'fragment_forked', 
+    'fragment_published', 
+    'fragment_updated', 
+    'fragment_fork_reviewed', 
+    'fragment_liked', 
+    'fragment_disliked', 
+    'user_followed',
+    'user_unfollowed');
+
+CREATE TYPE command_type AS ENUM (
+    'create_fragment', 
+    'follow_user', 
+    'unfollow_user', 
+    'like_fragment', 
+    'dislike_fragment', 
+    'fork_fragment', 
+    'publish_fragment', 
+    'update_fragment', 
+    'review_fork');
+
 
 create table users(
     id                  uuid            not null,
-    constraint users_pk primary key (id),
+    constraint users_pk primary key (id)
 );
 
 create table fragments(
@@ -57,7 +79,7 @@ create table follows(
 );
 
 
-create table tasks {
+create table tasks (
     id              uuid        not null,
     command_type    varchar     not null,
     command_data    jsonb       not null,
@@ -66,5 +88,13 @@ create table tasks {
     created_at      timestamp   not null,
     scheduled_to    timestamp   not null,
     completed_at    timestamp   null,
-    constraint tasks_pk primary key (id),
-};
+    constraint tasks_pk primary key (id)
+);
+
+create table events (
+    id              uuid        not null,
+    event_type      event_type  not null,
+    event_data      jsonb       not null,
+    event_timestamp timestamp   not null,
+    constraint events_pk primary key (id)
+);

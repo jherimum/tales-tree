@@ -1,3 +1,4 @@
+pub mod event;
 pub mod follow;
 pub mod fragment;
 pub mod like;

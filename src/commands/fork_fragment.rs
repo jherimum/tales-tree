@@ -1,6 +1,7 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
+    events::FragmentForkedEvent,
     id::Id,
     storage::{
         fragment::{Fragment, FragmentBuilder, FragmentState},
@@ -33,12 +34,12 @@ pub enum ForkFragmentCommandError {
 
 #[async_trait::async_trait]
 impl CommandHandler for ForkFragmentCommand {
-    type Output = Fragment;
+    type Event = FragmentForkedEvent;
 
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
         let parent_frag = Fragment::find(ctx.pool(), &self.parent_fragment_id)
             .await
@@ -82,6 +83,7 @@ impl CommandHandler for ForkFragmentCommand {
             .map_err(anyhow::Error::from)?
             .save(ctx.tx().as_mut())
             .await
+            .map(Into::into)
             .tap_err(|e| tracing::error!("Failed to save fragment: {e}"))?)
     }
 
@@ -91,5 +93,17 @@ impl CommandHandler for ForkFragmentCommand {
 
     fn command_type(&self) -> CommandType {
         CommandType::ForkFragment
+    }
+}
+
+impl From<Fragment> for Option<FragmentForkedEvent> {
+    fn from(value: Fragment) -> Self {
+        Some(FragmentForkedEvent {
+            fragment_id: *value.id(),
+            user_id: *value.author_id(),
+            parent_fragment_id: value.parent_id().unwrap(),
+            content: value.content().clone(),
+            timestamp: *value.created_at(),
+        })
     }
 }

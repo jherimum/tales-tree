@@ -1,6 +1,7 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
+    events::FragmentLikedEvent,
     id::Id,
     storage::{
         fragment::Fragment,
@@ -29,12 +30,12 @@ pub enum LikeFragmentCommandError {
 
 #[async_trait::async_trait]
 impl CommandHandler for LikeFragmentCommand {
-    type Output = bool;
+    type Event = FragmentLikedEvent;
 
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
         let frag = Fragment::find(ctx.pool(), &self.fragment_id)
             .await?
@@ -49,7 +50,7 @@ impl CommandHandler for LikeFragmentCommand {
             .tap_err(|e| tracing::error!("Failed to find like: {}", e))?;
 
         match actual_like {
-            Some(_) => Ok(false),
+            Some(_) => Ok(None),
             None => Ok(LikeBuilder::default()
                 .fragment_id(*frag.id())
                 .user_id(user)
@@ -60,7 +61,7 @@ impl CommandHandler for LikeFragmentCommand {
                 .save(ctx.tx.as_mut())
                 .await
                 .tap_err(|e| tracing::error!("Failed to save like: {e}"))
-                .map(|_| true)?),
+                .map(Into::into)?),
         }
     }
 
@@ -70,5 +71,15 @@ impl CommandHandler for LikeFragmentCommand {
 
     fn command_type(&self) -> CommandType {
         CommandType::LikeFragment
+    }
+}
+
+impl From<Like> for Option<FragmentLikedEvent> {
+    fn from(value: Like) -> Self {
+        Some(FragmentLikedEvent {
+            fragment_id: *value.fragment_id(),
+            user_id: *value.user_id(),
+            timestamp: *value.created_at(),
+        })
     }
 }

@@ -1,9 +1,10 @@
 use super::StorageError;
 use crate::{id::Id, DateTime};
 use derive_builder::Builder;
+use derive_getters::Getters;
 use sqlx::{FromRow, PgExecutor};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromRow, Builder)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromRow, Builder, Getters)]
 #[builder(setter(into))]
 pub struct Like {
     user_id: Id,

@@ -1,6 +1,7 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
+    events::FragmentUpdatedEvent,
     id::Id,
     storage::{fragment::Fragment, user::User, StorageError},
 };
@@ -35,12 +36,12 @@ pub enum UpdateFragmentCommandError {
 
 #[async_trait::async_trait]
 impl CommandHandler for UpdateFragmentCommand {
-    type Output = Fragment;
+    type Event = FragmentUpdatedEvent;
 
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
 
         let fragment = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
@@ -65,6 +66,7 @@ impl CommandHandler for UpdateFragmentCommand {
             .set_last_modified_at(Utc::now().naive_utc())
             .update(ctx.tx().as_mut())
             .await
+            .map(Into::into)
             .tap_err(|e| {
                 tracing::error!("Failed to update fragment [{:?}]: {e}", self.fragment_id)
             })?)
@@ -76,5 +78,16 @@ impl CommandHandler for UpdateFragmentCommand {
 
     fn command_type(&self) -> CommandType {
         CommandType::UpdateFragment
+    }
+}
+
+impl From<Fragment> for Option<FragmentUpdatedEvent> {
+    fn from(value: Fragment) -> Self {
+        Some(FragmentUpdatedEvent {
+            user_id: *value.author_id(),
+            fragment_id: *value.id(),
+            content: value.content().clone(),
+            timestamp: *value.last_modified_at(),
+        })
     }
 }

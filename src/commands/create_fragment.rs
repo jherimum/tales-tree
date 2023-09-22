@@ -1,6 +1,7 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
+    events::FragmentCreatedEvent,
     storage::{
         fragment::{Fragment, FragmentBuilder, FragmentState},
         user::User,
@@ -23,12 +24,12 @@ impl Command for CreateFragmentCommand {}
 
 #[async_trait::async_trait]
 impl CommandHandler for CreateFragmentCommand {
-    type Output = Fragment;
+    type Event = FragmentCreatedEvent;
 
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         Ok(FragmentBuilder::default()
             .id(self.id)
             .author_id(User::try_from(ctx.actor()).unwrap())
@@ -41,6 +42,7 @@ impl CommandHandler for CreateFragmentCommand {
             .map_err(anyhow::Error::from)?
             .save(ctx.tx().as_mut())
             .await
+            .map(Into::into)
             .tap_err(|e| tracing::error!("Failed to save fragment:{e}"))?)
     }
 
@@ -50,5 +52,16 @@ impl CommandHandler for CreateFragmentCommand {
 
     fn command_type(&self) -> CommandType {
         CommandType::CreateFragment
+    }
+}
+
+impl From<Fragment> for Option<FragmentCreatedEvent> {
+    fn from(value: Fragment) -> Self {
+        Some(FragmentCreatedEvent {
+            fragment_id: *value.id(),
+            user_id: *value.author_id(),
+            content: value.content().clone(),
+            timestamp: *value.created_at(),
+        })
     }
 }

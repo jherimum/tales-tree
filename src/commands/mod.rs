@@ -2,6 +2,7 @@ pub mod create_fragment;
 pub mod dislike_fragment;
 pub mod follow_user;
 pub mod fork_fragment;
+
 pub mod like_fragment;
 pub mod publish_fragment;
 pub mod review_fork;
@@ -10,8 +11,9 @@ pub mod update_fragment;
 
 use crate::{
     actor::Actor,
+    events::Event,
     id::Id,
-    storage::{task::TaskBuilder, StorageError},
+    storage::{event::DbEvent, task::TaskBuilder, StorageError},
     DateTime,
 };
 use chrono::Utc;
@@ -136,7 +138,7 @@ impl CommandBus {
         &self,
         actor: &Actor,
         command: C,
-    ) -> Result<C::Output, CommandBusError>
+    ) -> Result<Option<C::Event>, CommandBusError>
     where
         C: CommandHandler + Display + Debug + Send + Sync,
         E: Into<CommandBusError> + Display,
@@ -166,7 +168,7 @@ impl<C: CommandHandler + Debug> Executor<C> {
         }
     }
 
-    pub async fn execute(self) -> Result<C::Output, CommandBusError> {
+    pub async fn execute(self) -> Result<Option<C::Event>, CommandBusError> {
         if !self.command.supports(&self.actor) {
             tracing::error!(
                 "Actor [{:?}] is not allowed to execute command [{:?}]",
@@ -186,6 +188,12 @@ impl<C: CommandHandler + Debug> Executor<C> {
 
         match result {
             Ok(result) => {
+                if let Some(event) = &result {
+                    DbEvent::from(event.clone())
+                        .save(ctx.tx().as_mut())
+                        .await
+                        .map_err(CommandBusError::from)?;
+                }
                 ctx.tx().as_mut().commit().await?;
                 Ok(result)
             }
@@ -235,12 +243,12 @@ pub trait CommandHandler
 where
     Self: Command + Send,
 {
-    type Output: Debug + Send;
+    type Event: Event + Debug + Send + Sync;
 
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError>;
+    ) -> Result<Option<Self::Event>, CommandBusError>;
 
     fn supports(&self, actor: &Actor) -> bool;
 

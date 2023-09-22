@@ -1,5 +1,6 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
+    events::FragmentForkReviewedEvent,
     id::Id,
     storage::{
         fragment::{Fragment, FragmentState},
@@ -31,7 +32,7 @@ pub enum ReviewForkCommandError {
 
 #[async_trait::async_trait]
 impl CommandHandler for ReviewForkCommand {
-    type Output = Review;
+    type Event = FragmentForkReviewedEvent;
 
     fn supports(&self, actor: &crate::actor::Actor) -> bool {
         actor.is_user()
@@ -40,7 +41,7 @@ impl CommandHandler for ReviewForkCommand {
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,
-    ) -> Result<Self::Output, CommandBusError> {
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
         let frag = Fragment::find(ctx.pool(), &self.fragment_id)
             .await?
@@ -87,10 +88,22 @@ impl CommandHandler for ReviewForkCommand {
             .update(ctx.tx().as_mut())
             .await?;
 
-        Ok(review)
+        Ok(review.into())
     }
 
     fn command_type(&self) -> CommandType {
         CommandType::ReviewFork
+    }
+}
+
+impl From<Review> for Option<FragmentForkReviewedEvent> {
+    fn from(value: Review) -> Self {
+        Some(FragmentForkReviewedEvent {
+            fragment_id: *value.fragment_id(),
+            reviewer_id: *value.reviewer_id(),
+            action: *value.action(),
+            comment: value.comment().clone(),
+            timestamp: *value.created_at(),
+        })
     }
 }
