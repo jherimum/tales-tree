@@ -95,6 +95,6 @@ create table events (
     id              uuid        not null,
     event_type      event_type  not null,
     event_data      jsonb       not null,
-    event_timestamp timestamp   not null,
+    timestamp     timestamp   not null,
     constraint events_pk primary key (id)
 );

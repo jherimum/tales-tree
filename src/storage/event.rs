@@ -4,6 +4,8 @@ use crate::{
     id::Id,
     DateTime,
 };
+use derive_getters::Getters;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use sqlx::{FromRow, PgExecutor, Type};
 
@@ -11,19 +13,25 @@ use sqlx::{FromRow, PgExecutor, Type};
 #[sqlx(transparent)]
 pub struct EventData(Value);
 
-#[derive(Debug, Clone, FromRow)]
+impl EventData {
+    pub fn into_event<T: DeserializeOwned>(&self) -> T {
+        serde_json::from_value(self.0.clone()).unwrap()
+    }
+}
+
+#[derive(Debug, Clone, FromRow, Getters)]
 pub struct DbEvent {
-    pub id: Id,
-    pub event_type: EventType,
-    pub event_data: EventData,
-    pub timestamp: DateTime,
+    id: Id,
+    event_type: EventType,
+    event_data: EventData,
+    timestamp: DateTime,
 }
 
 impl DbEvent {
     pub async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         Ok(sqlx::query_as(
             r#"
-            INSERT INTO events (id, event_type, event_data, event_timestamp)
+            INSERT INTO events (id, event_type, event_data, timestamp)
             VALUES ($1, $2, $3, $4)
             RETURNING *
             "#,
@@ -33,6 +41,16 @@ impl DbEvent {
         .bind(self.event_data)
         .bind(self.timestamp)
         .fetch_one(exec)
+        .await?)
+    }
+
+    pub async fn all<'e, E: PgExecutor<'e>>(exec: E) -> Result<Vec<Self>, StorageError> {
+        Ok(sqlx::query_as(
+            r#"
+            SELECT * FROM events
+            "#,
+        )
+        .fetch_all(exec)
         .await?)
     }
 }

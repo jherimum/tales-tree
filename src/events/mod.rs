@@ -1,9 +1,10 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
 use crate::{id::Id, storage::review::ReviewAction, DateTime};
 
-#[derive(Debug, Clone, Type)]
+#[derive(Debug, Clone, Type, PartialEq, Eq)]
+#[sqlx(type_name = "event_type", rename_all = "snake_case")]
 pub enum EventType {
     FragmentCreated,
     FragmentForked,
@@ -28,7 +29,7 @@ where
     fn timestamp(&self) -> DateTime;
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FragmentCreatedEvent {
     pub fragment_id: Id,
     pub user_id: Id,

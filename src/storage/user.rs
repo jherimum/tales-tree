@@ -12,6 +12,15 @@ pub struct User {
 }
 
 impl User {
+    pub async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
+        Ok(
+            sqlx::query_as("INSERT INTO users (id) VALUES ($1) RETURNING *")
+                .bind(self.id())
+                .fetch_one(exec)
+                .await?,
+        )
+    }
+
     pub async fn find<'e, E: PgExecutor<'e>>(
         exec: E,
         id: &Id,

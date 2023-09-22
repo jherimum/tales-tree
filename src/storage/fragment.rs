@@ -14,6 +14,10 @@ use sqlx::{FromRow, PgExecutor};
 pub struct Path(Vec<Id>);
 
 impl Path {
+    pub fn empty() -> Self {
+        Self(Vec::new())
+    }
+
     pub fn new() -> Self {
         Self(Vec::new())
     }
@@ -22,6 +26,12 @@ impl Path {
         let mut new_path = self.0.clone();
         new_path.push(id);
         Self(new_path)
+    }
+}
+
+impl AsRef<[Id]> for Path {
+    fn as_ref(&self) -> &[Id] {
+        self.0.as_ref()
     }
 }
 

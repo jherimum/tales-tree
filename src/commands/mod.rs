@@ -19,7 +19,7 @@ use crate::{
 use chrono::Utc;
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction, Type};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use tap::TapFallible;
 
 use self::{
@@ -84,6 +84,10 @@ pub struct CommandBus {
 }
 
 impl CommandBus {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+
     pub async fn dispatch<C, E>(
         &self,
         actor: &Actor,
@@ -91,8 +95,8 @@ impl CommandBus {
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
-        C: CommandHandler + Display + Debug + Serialize,
-        E: Into<CommandBusError> + Display,
+        C: CommandHandler,
+        E: Into<CommandBusError>,
     {
         if !command.supports(actor) {
             tracing::error!("Actor [{actor:?}] is not allowed to execute command [{command:?}]");
@@ -119,8 +123,8 @@ impl CommandBus {
         command: C,
     ) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + Display + Debug + Send + Sync + Clone + 'static,
-        E: Into<CommandBusError> + Display,
+        C: CommandHandler + Send + Sync + Clone + 'static,
+        E: Into<CommandBusError>,
     {
         tokio::spawn(
             Executor {
@@ -140,8 +144,8 @@ impl CommandBus {
         command: C,
     ) -> Result<Option<C::Event>, CommandBusError>
     where
-        C: CommandHandler + Display + Debug + Send + Sync,
-        E: Into<CommandBusError> + Display,
+        C: CommandHandler + Send + Sync,
+        E: Into<CommandBusError>,
     {
         Executor {
             pool: self.pool.clone(),
@@ -159,7 +163,7 @@ pub struct Executor<C> {
     command: C,
 }
 
-impl<C: CommandHandler + Debug> Executor<C> {
+impl<C: CommandHandler> Executor<C> {
     pub fn new(pool: PgPool, actor: Actor, command: C) -> Self {
         Self {
             pool,
@@ -173,7 +177,7 @@ impl<C: CommandHandler + Debug> Executor<C> {
             tracing::error!(
                 "Actor [{:?}] is not allowed to execute command [{:?}]",
                 self.actor,
-                self.command
+                self.command.command_type()
             );
             return Err(CommandBusError::ActorNotSupported(self.actor.clone()));
         };
@@ -192,13 +196,22 @@ impl<C: CommandHandler + Debug> Executor<C> {
                     DbEvent::from(event.clone())
                         .save(ctx.tx().as_mut())
                         .await
-                        .map_err(CommandBusError::from)?;
+                        .tap_err(|e| tracing::error!("Failed to save event:{e}"))
+                        .tap_ok(|e| tracing::info!("Event [{e:?}] saved successfully."))?;
                 }
-                ctx.tx().as_mut().commit().await?;
+                ctx.tx()
+                    .as_mut()
+                    .commit()
+                    .await
+                    .tap_err(|e| tracing::error!("Failed to commit tx: {e}"))?;
                 Ok(result)
             }
             Err(e) => {
-                ctx.tx.as_mut().rollback().await?;
+                ctx.tx
+                    .as_mut()
+                    .rollback()
+                    .await
+                    .tap_err(|e| tracing::error!("Failed to rollback tx: {e}"))?;
                 Err(e)
             }
         }
@@ -239,9 +252,9 @@ impl<'ctx> CommandHandlerContext<'ctx> {
 pub trait Command {}
 
 #[async_trait::async_trait]
-pub trait CommandHandler
+pub trait CommandHandler: Debug + Send + Serialize
 where
-    Self: Command + Send,
+    Self: Command,
 {
     type Event: Event + Debug + Send + Sync;
 

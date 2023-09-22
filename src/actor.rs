@@ -4,6 +4,7 @@ use sqlx::Type;
 use crate::{id::Id, storage::user::User};
 
 #[derive(Debug, Clone, Type)]
+#[sqlx(type_name = "actor_type", rename_all = "snake_case")]
 pub enum ActorType {
     User,
     System,
