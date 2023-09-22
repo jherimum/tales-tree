@@ -1,22 +1,19 @@
 use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     id::Id,
-    storage::{
-        follow::{Follow, FollowBuilder},
-        user::User,
-    },
+    storage::{follow::Follow, user::User},
 };
 use tap::TapFallible;
 
-impl Command for FollowUserCommand {}
+impl Command for UnfollowUserCommand {}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
-pub struct FollowUserCommand {
+pub struct UnfollowUserCommand {
     followee_user_id: Id,
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for FollowUserCommand {
+impl CommandHandler for UnfollowUserCommand {
     type Output = bool;
 
     async fn handle(
@@ -28,19 +25,10 @@ impl CommandHandler for FollowUserCommand {
             .await
             .tap_err(|e| tracing::error!("Failed to find follow: {e}"))?;
 
-        if actual_follow.is_some() {
-            return Ok(false);
+        match actual_follow {
+            Some(f) => Ok(f.delete(ctx.tx().as_mut()).await?),
+            None => Ok(false),
         }
-
-        Ok(FollowBuilder::default()
-            .follower_id(*user.id())
-            .followee_id(self.followee_user_id)
-            .build()
-            .map_err(anyhow::Error::from)?
-            .save(ctx.tx().as_mut())
-            .await
-            .tap_err(|e| tracing::error!("Failed to save follow: {e}"))
-            .map(|_| true)?)
     }
 
     fn supports(&self, actor: &crate::actor::Actor) -> bool {
@@ -48,6 +36,6 @@ impl CommandHandler for FollowUserCommand {
     }
 
     fn command_type(&self) -> CommandType {
-        CommandType::FollowUser
+        CommandType::UnfollowUser
     }
 }

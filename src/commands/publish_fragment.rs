@@ -1,4 +1,4 @@
-use super::{CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
     id::Id,
@@ -11,6 +11,9 @@ use anyhow::Context;
 use chrono::Utc;
 use tap::TapFallible;
 
+impl Command for PublishFragmentCommand {}
+
+#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct PublishFragmentCommand {
     pub fragment_id: Id,
 }
@@ -35,9 +38,9 @@ impl CommandHandler for PublishFragmentCommand {
         actor.is_user()
     }
 
-    async fn handle<'ctx>(
+    async fn handle(
         &self,
-        ctx: &'ctx mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
         let user_actor = User::try_from(ctx.actor())?;
 
@@ -74,5 +77,9 @@ impl CommandHandler for PublishFragmentCommand {
             .update(ctx.tx().as_mut())
             .await
             .context(format!("Failed to update fragment [{}]", self.fragment_id))?)
+    }
+
+    fn command_type(&self) -> CommandType {
+        CommandType::PublishFragment
     }
 }

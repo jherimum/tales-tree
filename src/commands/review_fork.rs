@@ -1,4 +1,4 @@
-use super::{CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     id::Id,
     storage::{
@@ -10,6 +10,9 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
+impl Command for ReviewForkCommand {}
+
+#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct ReviewForkCommand {
     pub review_id: Id,
     pub fragment_id: Id,
@@ -34,12 +37,12 @@ impl CommandHandler for ReviewForkCommand {
         actor.is_user()
     }
 
-    async fn handle<'ctx>(
+    async fn handle(
         &self,
-        ctx: &'ctx mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
-        let frag = Fragment::find(ctx.pool, &self.fragment_id)
+        let frag = Fragment::find(ctx.pool(), &self.fragment_id)
             .await?
             .ok_or(ReviewForkCommandError::FragmentNotFound(self.fragment_id))?;
 
@@ -85,5 +88,9 @@ impl CommandHandler for ReviewForkCommand {
             .await?;
 
         Ok(review)
+    }
+
+    fn command_type(&self) -> CommandType {
+        CommandType::ReviewFork
     }
 }

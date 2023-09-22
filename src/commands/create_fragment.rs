@@ -1,4 +1,4 @@
-use super::{CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
     storage::{
@@ -8,25 +8,26 @@ use crate::{
     Id,
 };
 use chrono::Utc;
-use derive_builder::Builder;
 use tap::TapFallible;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreateFragmentCommandError {}
 
-#[derive(Debug, Builder)]
+#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct CreateFragmentCommand {
     pub id: Id,
     pub content: String,
 }
 
+impl Command for CreateFragmentCommand {}
+
 #[async_trait::async_trait]
 impl CommandHandler for CreateFragmentCommand {
     type Output = Fragment;
 
-    async fn handle<'ctx>(
+    async fn handle(
         &self,
-        ctx: &'ctx mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
         Ok(FragmentBuilder::default()
             .id(self.id)
@@ -45,5 +46,9 @@ impl CommandHandler for CreateFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
+    }
+
+    fn command_type(&self) -> CommandType {
+        CommandType::CreateFragment
     }
 }

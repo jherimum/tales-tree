@@ -1,5 +1,6 @@
 CREATE TYPE fragment_state AS ENUM ('draft', 'published', 'waiting_review', 'rejected', 'rejected', 'waiting_changes');
 CREATE TYPE review_action AS ENUM ('approve', 'reject', 'request_changes');
+CREATE TYPE actor_type AS ENUM ('system', 'user');
 
 create table users(
     id                  uuid            not null,
@@ -54,3 +55,16 @@ create table follows(
     constraint follows_fk_follower foreign key (follower_id) references users(id),
     constraint follows_fk_followee foreign key (followee_id) references users(id)
 );
+
+
+create table tasks {
+    id              uuid        not null,
+    command_type    varchar     not null,
+    command_data    jsonb       not null,
+    actor_type      varchar     not null,
+    actor_id        json        not null,
+    created_at      timestamp   not null,
+    scheduled_to    timestamp   not null,
+    completed_at    timestamp   null,
+    constraint tasks_pk primary key (id),
+};

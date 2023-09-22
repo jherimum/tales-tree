@@ -1,11 +1,36 @@
 use anyhow::bail;
+use sqlx::Type;
 
-use crate::storage::user::User;
+use crate::{id::Id, storage::user::User};
+
+#[derive(Debug, Clone, Type)]
+pub enum ActorType {
+    User,
+    System,
+}
 
 #[derive(Debug, Clone)]
 pub enum Actor {
     User(User),
     System,
+}
+
+impl From<&Actor> for ActorType {
+    fn from(value: &Actor) -> Self {
+        match value {
+            Actor::User(_) => Self::User,
+            Actor::System => Self::System,
+        }
+    }
+}
+
+impl From<&Actor> for Option<Id> {
+    fn from(value: &Actor) -> Self {
+        match value {
+            Actor::User(user) => Some(*user.id()),
+            Actor::System => None,
+        }
+    }
 }
 
 impl Actor {

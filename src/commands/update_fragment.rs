@@ -1,4 +1,4 @@
-use super::{CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
     id::Id,
@@ -7,6 +7,9 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
+impl Command for UpdateFragmentCommand {}
+
+#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct UpdateFragmentCommand {
     fragment_id: Id,
     content: String,
@@ -34,9 +37,9 @@ pub enum UpdateFragmentCommandError {
 impl CommandHandler for UpdateFragmentCommand {
     type Output = Fragment;
 
-    async fn handle<'ctx>(
+    async fn handle(
         &self,
-        ctx: &'ctx mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
 
@@ -69,5 +72,9 @@ impl CommandHandler for UpdateFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
+    }
+
+    fn command_type(&self) -> CommandType {
+        CommandType::UpdateFragment
     }
 }

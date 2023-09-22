@@ -1,4 +1,4 @@
-use super::{CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, CommandType};
 use crate::{
     actor::Actor,
     id::Id,
@@ -10,6 +10,9 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
+impl Command for ForkFragmentCommand {}
+
+#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct ForkFragmentCommand {
     fragment_id: Id,
     parent_fragment_id: Id,
@@ -32,9 +35,9 @@ pub enum ForkFragmentCommandError {
 impl CommandHandler for ForkFragmentCommand {
     type Output = Fragment;
 
-    async fn handle<'ctx>(
+    async fn handle(
         &self,
-        ctx: &'ctx mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
         let parent_frag = Fragment::find(ctx.pool(), &self.parent_fragment_id)
@@ -84,5 +87,9 @@ impl CommandHandler for ForkFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
+    }
+
+    fn command_type(&self) -> CommandType {
+        CommandType::ForkFragment
     }
 }

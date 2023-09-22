@@ -1,27 +1,52 @@
 pub mod create_fragment;
+pub mod dislike_fragment;
 pub mod follow_user;
 pub mod fork_fragment;
 pub mod like_fragment;
 pub mod publish_fragment;
 pub mod review_fork;
+pub mod unfollow_user;
 pub mod update_fragment;
 
-use crate::{actor::Actor, storage::StorageError};
-use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
+use crate::{
+    actor::Actor,
+    id::Id,
+    storage::{task::TaskBuilder, StorageError},
+    DateTime,
+};
+use chrono::Utc;
+use serde::Serialize;
+use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction, Type};
 use std::fmt::{Debug, Display};
 use tap::TapFallible;
 
 use self::{
-    create_fragment::CreateFragmentCommandError, fork_fragment::ForkFragmentCommandError,
-    like_fragment::LikeOrDislikeFragmentCommandError,
+    create_fragment::CreateFragmentCommandError, dislike_fragment::DislikeFragmentCommandError,
+    fork_fragment::ForkFragmentCommandError, like_fragment::LikeFragmentCommandError,
     publish_fragment::PublishFragmentCommandError, review_fork::ReviewForkCommandError,
     update_fragment::UpdateFragmentCommandError,
 };
 
+#[derive(Debug, Type, Clone)]
+pub enum CommandType {
+    CreateFragment,
+    FollowUser,
+    UnfollowUser,
+    LikeFragment,
+    DislikeFragment,
+    ForkFragment,
+    PublishFragment,
+    UpdateFragment,
+    ReviewFork,
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CommandBusError {
     #[error(transparent)]
-    LikeFragmentCommand(#[from] LikeOrDislikeFragmentCommandError),
+    DislikeFragmentCommand(#[from] DislikeFragmentCommandError),
+
+    #[error(transparent)]
+    LikeFragmentCommand(#[from] LikeFragmentCommandError),
 
     #[error(transparent)]
     CreateFragmentCommand(#[from] CreateFragmentCommandError),
@@ -51,18 +76,20 @@ pub enum CommandBusError {
     Unexpected(#[from] anyhow::Error),
 }
 
+#[derive(Clone)]
 pub struct CommandBus {
     pool: PgPool,
 }
 
 impl CommandBus {
-    pub async fn execute<C, E>(
+    pub async fn dispatch<C, E>(
         &self,
         actor: &Actor,
         command: C,
-    ) -> Result<C::Output, CommandBusError>
+        schedule_to: Option<DateTime>,
+    ) -> Result<Id, CommandBusError>
     where
-        C: CommandHandler + Display + Debug,
+        C: CommandHandler + Display + Debug + Serialize,
         E: Into<CommandBusError> + Display,
     {
         if !command.supports(actor) {
@@ -70,12 +97,92 @@ impl CommandBus {
             return Err(CommandBusError::ActorNotSupported(actor.clone()));
         };
 
-        let ctx = &mut CommandHandlerContext::new(&self.pool, &actor).await?;
-        let result = command
-            .handle(ctx)
+        Ok(TaskBuilder::default()
+            .id(Id::new())
+            .command_type(command.command_type())
+            .commnad_data(command.into())
+            .actor_type(actor.into())
+            .actor_id(actor.into())
+            .scheduled_at(schedule_to.unwrap_or(Utc::now().naive_utc()))
+            .build()
+            .map_err(anyhow::Error::from)?
+            .save(&self.pool)
             .await
-            .tap_ok(|_| tracing::info!("Command [{command:?}] handled successfully"))
-            .tap_err(|e| tracing::error!("Failed to handle command [{command:?}]: {e}"));
+            .map(|t| *t.id())?)
+    }
+
+    pub async fn async_execute<C, E>(
+        &self,
+        actor: &Actor,
+        command: C,
+    ) -> Result<(), CommandBusError>
+    where
+        C: CommandHandler + Display + Debug + Send + Sync + Clone + 'static,
+        E: Into<CommandBusError> + Display,
+    {
+        tokio::spawn(
+            Executor {
+                pool: self.pool.clone(),
+                actor: actor.clone(),
+                command: command.clone(),
+            }
+            .execute(),
+        );
+
+        Ok(())
+    }
+
+    pub async fn execute<C, E>(
+        &self,
+        actor: &Actor,
+        command: C,
+    ) -> Result<C::Output, CommandBusError>
+    where
+        C: CommandHandler + Display + Debug + Send + Sync,
+        E: Into<CommandBusError> + Display,
+    {
+        Executor {
+            pool: self.pool.clone(),
+            actor: actor.clone(),
+            command,
+        }
+        .execute()
+        .await
+    }
+}
+
+pub struct Executor<C> {
+    pool: PgPool,
+    actor: Actor,
+    command: C,
+}
+
+impl<C: CommandHandler + Debug> Executor<C> {
+    pub fn new(pool: PgPool, actor: Actor, command: C) -> Self {
+        Self {
+            pool,
+            actor,
+            command,
+        }
+    }
+
+    pub async fn execute(self) -> Result<C::Output, CommandBusError> {
+        if !self.command.supports(&self.actor) {
+            tracing::error!(
+                "Actor [{:?}] is not allowed to execute command [{:?}]",
+                self.actor,
+                self.command
+            );
+            return Err(CommandBusError::ActorNotSupported(self.actor.clone()));
+        };
+
+        let mut ctx = CommandHandlerContext::new(&self.pool, &self.actor).await?;
+        let result = self
+            .command
+            .handle(&mut ctx)
+            .await
+            .tap_ok(|_| tracing::info!("Command [{:?}] handled successfully", self.command))
+            .tap_err(|e| tracing::error!("Failed to handle command [{:?}]: {e}", self.command));
 
         match result {
             Ok(result) => {
@@ -91,18 +198,18 @@ impl CommandBus {
 }
 
 pub struct CommandHandlerContext<'ctx> {
-    pool: &'ctx PgPool,
-    actor: &'ctx Actor,
+    pool: PgPool,
+    actor: Actor,
     tx: Transaction<'ctx, Postgres>,
 }
 
 impl<'ctx> CommandHandlerContext<'ctx> {
     pub fn pool(&self) -> &PgPool {
-        self.pool
+        &self.pool
     }
 
     pub fn actor(&self) -> &Actor {
-        self.actor
+        &self.actor
     }
 
     pub fn tx(&mut self) -> &mut Transaction<'ctx, Postgres> {
@@ -110,25 +217,32 @@ impl<'ctx> CommandHandlerContext<'ctx> {
     }
 
     pub async fn new(
-        pool: &'ctx PgPool,
-        actor: &'ctx Actor,
+        pool: &PgPool,
+        actor: &Actor,
     ) -> Result<CommandHandlerContext<'ctx>, CommandBusError> {
         Ok(Self {
-            pool: &pool,
-            actor: actor,
+            pool: pool.clone(),
+            actor: actor.clone(),
             tx: pool.begin().await.map_err(CommandBusError::from)?,
         })
     }
 }
 
-#[async_trait::async_trait]
-pub trait CommandHandler {
-    type Output: Debug;
+pub trait Command {}
 
-    async fn handle<'ctx>(
+#[async_trait::async_trait]
+pub trait CommandHandler
+where
+    Self: Command + Send,
+{
+    type Output: Debug + Send;
+
+    async fn handle(
         &self,
-        ctx: &'ctx mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError>;
 
     fn supports(&self, actor: &Actor) -> bool;
+
+    fn command_type(&self) -> CommandType;
 }

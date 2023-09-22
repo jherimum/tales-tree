@@ -2,24 +2,19 @@ use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, Com
 use crate::{
     actor::Actor,
     id::Id,
-    storage::{
-        fragment::Fragment,
-        like::{Like, LikeBuilder},
-        user::User,
-    },
+    storage::{fragment::Fragment, like::Like, user::User},
 };
-use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for LikeFragmentCommand {}
+impl Command for DislikeFragmentCommand {}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
-pub struct LikeFragmentCommand {
+pub struct DislikeFragmentCommand {
     fragment_id: Id,
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum LikeFragmentCommandError {
+pub enum DislikeFragmentCommandError {
     #[error("Fragment {0} not found")]
     FragmentNotFound(Id),
 
@@ -28,7 +23,7 @@ pub enum LikeFragmentCommandError {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for LikeFragmentCommand {
+impl CommandHandler for DislikeFragmentCommand {
     type Output = bool;
 
     async fn handle(
@@ -36,12 +31,12 @@ impl CommandHandler for LikeFragmentCommand {
         ctx: &mut CommandHandlerContext,
     ) -> Result<Self::Output, CommandBusError> {
         let user = User::try_from(ctx.actor())?;
-        let frag = Fragment::find(ctx.pool(), &self.fragment_id)
-            .await?
-            .ok_or(LikeFragmentCommandError::FragmentNotFound(self.fragment_id))?;
+        let frag = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
+            DislikeFragmentCommandError::FragmentNotFound(self.fragment_id),
+        )?;
 
         if !frag.is_published() {
-            return Err(LikeFragmentCommandError::FragmentNotPublished(self.fragment_id).into());
+            return Err(DislikeFragmentCommandError::FragmentNotPublished(self.fragment_id).into());
         }
 
         let actual_like = Like::find(ctx.pool(), &frag.id(), &user.id())
@@ -49,18 +44,8 @@ impl CommandHandler for LikeFragmentCommand {
             .tap_err(|e| tracing::error!("Failed to find like: {}", e))?;
 
         match actual_like {
-            Some(_) => Ok(false),
-            None => Ok(LikeBuilder::default()
-                .fragment_id(*frag.id())
-                .user_id(user)
-                .created_at(Utc::now().naive_utc())
-                .build()
-                .tap_err(|e| tracing::error!("Failed to build like: {}", e))
-                .map_err(anyhow::Error::from)?
-                .save(ctx.tx.as_mut())
-                .await
-                .tap_err(|e| tracing::error!("Failed to save like: {e}"))
-                .map(|_| true)?),
+            Some(l) => Ok(l.delete(ctx.tx().as_mut()).await?),
+            None => Ok(false),
         }
     }
 
