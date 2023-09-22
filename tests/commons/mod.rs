@@ -1,15 +1,17 @@
 use sqlx::PgPool;
+use std::sync::Arc;
 use tales_tree::{
-    id::Id,
-    storage::user::{User, UserBuilder},
+    actor::Actor, clock::Clock, commands::CommandHandlerContext, id::IdGenerator,
+    storage::user::User,
 };
 
-pub async fn create_user(pool: &PgPool) -> User {
-    UserBuilder::default()
-        .id(Id::new())
-        .build()
-        .unwrap()
-        .save(pool)
+pub async fn create_context<C: Clock + 'static, I: IdGenerator + 'static>(
+    pool: &PgPool,
+    user: User,
+    clock: C,
+    ids: I,
+) -> CommandHandlerContext {
+    CommandHandlerContext::new(pool, &Actor::User(user), Arc::new(clock), Arc::new(ids))
         .await
         .unwrap()
 }

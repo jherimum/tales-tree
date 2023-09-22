@@ -11,15 +11,16 @@ pub mod update_fragment;
 
 use crate::{
     actor::Actor,
+    clock::Clock,
     events::Event,
-    id::Id,
+    id::{Id, IdGenerator},
     storage::{event::DbEvent, task::TaskBuilder, StorageError},
     DateTime,
 };
 use chrono::Utc;
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction, Type};
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 use tap::TapFallible;
 
 use self::{
@@ -81,11 +82,13 @@ pub enum CommandBusError {
 #[derive(Clone)]
 pub struct CommandBus {
     pool: PgPool,
+    clock: Arc<dyn Clock>,
+    ids: Arc<dyn IdGenerator>,
 }
 
 impl CommandBus {
-    pub fn new(pool: PgPool) -> Self {
-        Self { pool }
+    pub fn new(pool: PgPool, clock: Arc<dyn Clock>, ids: Arc<dyn IdGenerator>) -> Self {
+        Self { pool, clock, ids }
     }
 
     pub async fn dispatch<C, E>(
@@ -127,11 +130,13 @@ impl CommandBus {
         E: Into<CommandBusError>,
     {
         tokio::spawn(
-            Executor {
-                pool: self.pool.clone(),
-                actor: actor.clone(),
-                command: command.clone(),
-            }
+            Executor::new(
+                self.pool.clone(),
+                actor.clone(),
+                command,
+                self.clock.clone(),
+                self.ids.clone(),
+            )
             .execute(),
         );
 
@@ -151,6 +156,8 @@ impl CommandBus {
             pool: self.pool.clone(),
             actor: actor.clone(),
             command,
+            clock: self.clock.clone(),
+            ids: self.ids.clone(),
         }
         .execute()
         .await
@@ -161,14 +168,24 @@ pub struct Executor<C> {
     pool: PgPool,
     actor: Actor,
     command: C,
+    clock: Arc<dyn Clock>,
+    ids: Arc<dyn IdGenerator>,
 }
 
 impl<C: CommandHandler> Executor<C> {
-    pub fn new(pool: PgPool, actor: Actor, command: C) -> Self {
+    pub fn new(
+        pool: PgPool,
+        actor: Actor,
+        command: C,
+        clock: Arc<dyn Clock>,
+        ids: Arc<dyn IdGenerator>,
+    ) -> Self {
         Self {
             pool,
             actor,
             command,
+            clock,
+            ids,
         }
     }
 
@@ -182,7 +199,8 @@ impl<C: CommandHandler> Executor<C> {
             return Err(CommandBusError::ActorNotSupported(self.actor.clone()));
         };
 
-        let mut ctx = CommandHandlerContext::new(&self.pool, &self.actor).await?;
+        let mut ctx =
+            CommandHandlerContext::new(&self.pool, &self.actor, self.clock, self.ids).await?;
         let result = self
             .command
             .handle(&mut ctx)
@@ -222,6 +240,8 @@ pub struct CommandHandlerContext<'ctx> {
     pool: PgPool,
     actor: Actor,
     tx: Transaction<'ctx, Postgres>,
+    clock: Arc<dyn Clock>,
+    ids: Arc<dyn IdGenerator>,
 }
 
 impl<'ctx> CommandHandlerContext<'ctx> {
@@ -237,14 +257,22 @@ impl<'ctx> CommandHandlerContext<'ctx> {
         &mut self.tx
     }
 
+    pub fn clock(&self) -> &dyn Clock {
+        self.clock.as_ref()
+    }
+
     pub async fn new(
         pool: &PgPool,
         actor: &Actor,
+        clock: Arc<dyn Clock>,
+        ids: Arc<dyn IdGenerator>,
     ) -> Result<CommandHandlerContext<'ctx>, CommandBusError> {
         Ok(Self {
             pool: pool.clone(),
             actor: actor.clone(),
             tx: pool.begin().await.map_err(CommandBusError::from)?,
+            clock,
+            ids,
         })
     }
 }

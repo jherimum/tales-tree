@@ -1,3 +1,5 @@
+use derive_builder::Builder;
+use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
@@ -29,12 +31,12 @@ where
     fn timestamp(&self) -> DateTime;
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentCreatedEvent {
-    pub fragment_id: Id,
-    pub user_id: Id,
-    pub content: String,
-    pub timestamp: DateTime,
+    fragment_id: Id,
+    user_id: Id,
+    content: String,
+    timestamp: DateTime,
 }
 
 impl Event for FragmentCreatedEvent {

@@ -1,4 +1,18 @@
+use mockall::automock;
 use std::fmt::Display;
+
+#[automock]
+pub trait IdGenerator: Send + Sync {
+    fn new(&self) -> Id;
+}
+
+pub struct DefaultIdGenerator;
+
+impl IdGenerator for DefaultIdGenerator {
+    fn new(&self) -> Id {
+        Id::new()
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, serde::Serialize, serde::Deserialize)]
 #[sqlx(transparent)]
