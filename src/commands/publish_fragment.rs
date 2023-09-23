@@ -12,7 +12,11 @@ use anyhow::Context;
 use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for PublishFragmentCommand {}
+impl Command for PublishFragmentCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::PublishFragment
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct PublishFragmentCommand {
@@ -79,10 +83,6 @@ impl CommandHandler for PublishFragmentCommand {
             .await
             .map(Into::into)
             .context(format!("Failed to update fragment [{}]", self.fragment_id))?)
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::PublishFragment
     }
 }
 

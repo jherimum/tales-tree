@@ -9,7 +9,11 @@ use crate::{
 };
 use tap::TapFallible;
 
-impl Command for FollowUserCommand {}
+impl Command for FollowUserCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::FollowUser
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct FollowUserCommand {
@@ -46,10 +50,6 @@ impl CommandHandler for FollowUserCommand {
 
     fn supports(&self, actor: &crate::actor::Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::FollowUser
     }
 }
 

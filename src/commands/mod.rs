@@ -277,7 +277,9 @@ impl<'ctx> CommandHandlerContext<'ctx> {
     }
 }
 
-pub trait Command {}
+pub trait Command {
+    fn command_type(&self) -> CommandType;
+}
 
 #[async_trait::async_trait]
 pub trait CommandHandler: Debug + Send + Serialize
@@ -292,6 +294,4 @@ where
     ) -> Result<Option<Self::Event>, CommandBusError>;
 
     fn supports(&self, actor: &Actor) -> bool;
-
-    fn command_type(&self) -> CommandType;
 }

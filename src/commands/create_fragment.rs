@@ -22,7 +22,11 @@ pub struct CreateFragmentCommand {
     content: String,
 }
 
-impl Command for CreateFragmentCommand {}
+impl Command for CreateFragmentCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::CreateFragment
+    }
+}
 
 #[async_trait::async_trait]
 impl CommandHandler for CreateFragmentCommand {
@@ -51,10 +55,6 @@ impl CommandHandler for CreateFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::CreateFragment
     }
 }
 

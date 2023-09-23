@@ -12,7 +12,11 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for LikeFragmentCommand {}
+impl Command for LikeFragmentCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::LikeFragment
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct LikeFragmentCommand {
@@ -67,10 +71,6 @@ impl CommandHandler for LikeFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::LikeFragment
     }
 }
 

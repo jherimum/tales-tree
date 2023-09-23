@@ -11,7 +11,11 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for ForkFragmentCommand {}
+impl Command for ForkFragmentCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::ForkFragment
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct ForkFragmentCommand {
@@ -89,10 +93,6 @@ impl CommandHandler for ForkFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::ForkFragment
     }
 }
 

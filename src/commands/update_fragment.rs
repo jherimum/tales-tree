@@ -8,7 +8,11 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for UpdateFragmentCommand {}
+impl Command for UpdateFragmentCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::UpdateFragment
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct UpdateFragmentCommand {
@@ -74,10 +78,6 @@ impl CommandHandler for UpdateFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::UpdateFragment
     }
 }
 

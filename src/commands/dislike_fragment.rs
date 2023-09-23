@@ -8,7 +8,11 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for DislikeFragmentCommand {}
+impl Command for DislikeFragmentCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::LikeFragment
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct DislikeFragmentCommand {
@@ -60,9 +64,5 @@ impl CommandHandler for DislikeFragmentCommand {
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::LikeFragment
     }
 }

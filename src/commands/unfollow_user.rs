@@ -6,7 +6,11 @@ use crate::{
 };
 use tap::TapFallible;
 
-impl Command for UnfollowUserCommand {}
+impl Command for UnfollowUserCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::UnfollowUser
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct UnfollowUserCommand {
@@ -41,9 +45,5 @@ impl CommandHandler for UnfollowUserCommand {
 
     fn supports(&self, actor: &crate::actor::Actor) -> bool {
         actor.is_user()
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::UnfollowUser
     }
 }

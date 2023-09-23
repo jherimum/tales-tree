@@ -11,7 +11,11 @@ use crate::{
 use chrono::Utc;
 use tap::TapFallible;
 
-impl Command for ReviewForkCommand {}
+impl Command for ReviewForkCommand {
+    fn command_type(&self) -> CommandType {
+        CommandType::ReviewFork
+    }
+}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct ReviewForkCommand {
@@ -89,10 +93,6 @@ impl CommandHandler for ReviewForkCommand {
             .await?;
 
         Ok(review.into())
-    }
-
-    fn command_type(&self) -> CommandType {
-        CommandType::ReviewFork
     }
 }
 
