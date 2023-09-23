@@ -5,8 +5,8 @@ use crate::{
     id::Id,
     storage::{
         active::{fragment::ActiveFragment, user::ActiveUser},
-        fragment::{Fragment, FragmentBuilder, FragmentState},
-        user::User,
+        model::fragment::{Fragment, FragmentBuilder, FragmentState},
+        model::user::User,
     },
 };
 use chrono::Utc;

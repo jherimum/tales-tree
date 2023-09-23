@@ -4,8 +4,8 @@ use crate::{
     events::{FragmentCreatedEvent, FragmentCreatedEventBuilder},
     storage::{
         active::fragment::ActiveFragment,
-        fragment::{Fragment, FragmentBuilder, FragmentState},
-        user::User,
+        model::fragment::{Fragment, FragmentBuilder, FragmentState},
+        model::user::User,
     },
     Id,
 };

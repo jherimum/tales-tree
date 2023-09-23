@@ -5,8 +5,8 @@ use crate::{
     id::Id,
     storage::{
         active::fragment::ActiveFragment,
-        fragment::{Fragment, FragmentState},
-        user::User,
+        model::fragment::{Fragment, FragmentState},
+        model::user::User,
     },
 };
 use anyhow::Context;

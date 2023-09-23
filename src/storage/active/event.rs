@@ -1,6 +1,6 @@
 use sqlx::PgExecutor;
 
-use crate::storage::{event::DbEvent, StorageError};
+use crate::storage::{model::event::DbEvent, StorageError};
 
 #[async_trait::async_trait]
 impl ActiveEvent for DbEvent {

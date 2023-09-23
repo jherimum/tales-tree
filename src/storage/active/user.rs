@@ -2,7 +2,7 @@ use sqlx::PgExecutor;
 
 use crate::{
     id::Id,
-    storage::{follow::Follow, user::User, StorageError},
+    storage::{model::follow::Follow, model::user::User, StorageError},
 };
 
 use super::follow::ActiveFollow;

@@ -22,7 +22,7 @@ use tales_tree::{
     id::{Id, MockIdGenerator},
     storage::{
         active::fragment::ActiveFragment,
-        fragment::{Fragment, FragmentBuilder},
+        model::fragment::{Fragment, FragmentBuilder},
     },
 };
 

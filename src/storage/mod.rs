@@ -1,12 +1,5 @@
-pub mod event;
-pub mod follow;
-pub mod fragment;
-pub mod like;
-pub mod review;
-pub mod task;
-pub mod user;
-
 pub mod active;
+pub mod model;
 
 use crate::Id;
 
@@ -17,7 +10,9 @@ pub enum StorageError {
 }
 
 pub trait Entity {
-    fn id(&self) -> Id;
+    type Id: PartialEq;
+
+    fn id(&self) -> Self::Id;
 
     fn same_as(&self, other: &Self) -> bool {
         self.id() == other.id()

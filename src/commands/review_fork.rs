@@ -4,9 +4,9 @@ use crate::{
     id::Id,
     storage::{
         active::{fragment::ActiveFragment, review::ActiveReview},
-        fragment::{Fragment, FragmentState},
-        review::{Review, ReviewAction, ReviewBuilder},
-        user::User,
+        model::fragment::{Fragment, FragmentState},
+        model::review::{Review, ReviewAction, ReviewBuilder},
+        model::user::User,
     },
 };
 use chrono::Utc;

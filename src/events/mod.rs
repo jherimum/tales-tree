@@ -3,7 +3,7 @@ use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
-use crate::{id::Id, storage::review::ReviewAction, DateTime};
+use crate::{id::Id, storage::model::review::ReviewAction, DateTime};
 
 #[derive(Debug, Clone, Type, PartialEq, Eq)]
 #[sqlx(type_name = "event_type", rename_all = "snake_case")]

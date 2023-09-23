@@ -2,7 +2,7 @@ use sqlx::PgExecutor;
 
 use crate::{
     id::Id,
-    storage::{like::Like, StorageError},
+    storage::{model::like::Like, StorageError},
 };
 
 #[async_trait::async_trait]

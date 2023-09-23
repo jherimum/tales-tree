@@ -5,9 +5,9 @@ use crate::{
     id::Id,
     storage::{
         active::{fragment::ActiveFragment, like::ActiveLike},
-        fragment::Fragment,
-        like::{Like, LikeBuilder},
-        user::User,
+        model::fragment::Fragment,
+        model::like::{Like, LikeBuilder},
+        model::user::User,
     },
 };
 use chrono::Utc;

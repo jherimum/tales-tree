@@ -16,8 +16,8 @@ use crate::{
     id::{Id, IdGenerator},
     storage::{
         active::{event::ActiveEvent, task::ActiveTask},
-        event::DbEvent,
-        task::TaskBuilder,
+        model::event::DbEvent,
+        model::task::TaskBuilder,
         StorageError,
     },
     DateTime,

@@ -3,7 +3,7 @@ use tales_tree::{
     id::Id,
     storage::{
         active::user::ActiveUser,
-        user::{User, UserBuilder},
+        model::user::{User, UserBuilder},
     },
 };
 

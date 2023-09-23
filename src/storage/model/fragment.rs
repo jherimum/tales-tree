@@ -1,7 +1,6 @@
 use super::review::ReviewAction;
 use super::user::User;
-use super::Entity;
-use crate::{DateTime, Id};
+use crate::{storage::Entity, DateTime, Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use derive_setters::Setters;
@@ -64,6 +63,7 @@ pub struct Fragment {
 }
 
 impl Entity for Fragment {
+    type Id = Id;
     fn id(&self) -> Id {
         self.id
     }

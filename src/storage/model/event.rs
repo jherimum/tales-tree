@@ -1,6 +1,7 @@
 use crate::{
     events::{Event as EventTrait, EventType},
     id::Id,
+    storage::Entity,
     DateTime,
 };
 use derive_getters::Getters;
@@ -24,6 +25,13 @@ pub struct DbEvent {
     event_type: EventType,
     event_data: EventData,
     timestamp: DateTime,
+}
+
+impl Entity for DbEvent {
+    type Id = Id;
+    fn id(&self) -> Id {
+        self.id
+    }
 }
 
 impl<E: EventTrait> From<E> for DbEvent {

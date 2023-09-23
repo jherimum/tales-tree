@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use tales_tree::{
     actor::Actor, clock::Clock, commands::CommandHandlerContext, id::IdGenerator,
-    storage::user::User,
+    storage::model::user::User,
 };
 
 pub async fn create_context<'ctx, C: Clock + 'static, I: IdGenerator + 'static>(

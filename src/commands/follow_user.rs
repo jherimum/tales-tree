@@ -4,8 +4,8 @@ use crate::{
     id::Id,
     storage::{
         active::follow::ActiveFollow,
-        follow::{Follow, FollowBuilder},
-        user::User,
+        model::follow::{Follow, FollowBuilder},
+        model::user::User,
     },
 };
 use tap::TapFallible;

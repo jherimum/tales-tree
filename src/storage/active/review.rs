@@ -1,6 +1,6 @@
 use sqlx::PgExecutor;
 
-use crate::storage::{review::Review, StorageError};
+use crate::storage::{model::review::Review, StorageError};
 
 #[async_trait::async_trait]
 impl ActiveReview for Review {

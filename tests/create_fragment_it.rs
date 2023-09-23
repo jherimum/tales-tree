@@ -11,7 +11,7 @@ use tales_tree::{
     id::Id,
     storage::{
         active::fragment::ActiveFragment,
-        fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+        model::fragment::{Fragment, FragmentBuilder, FragmentState, Path},
     },
 };
 

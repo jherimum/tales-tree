@@ -12,7 +12,7 @@ use tales_tree::{
     },
     events::{EventType, FragmentCreatedEvent},
     id::{Id, MockIdGenerator},
-    storage::{event::DbEvent, user::UserBuilder},
+    storage::{model::event::DbEvent, model::user::UserBuilder},
 };
 
 mod commons;

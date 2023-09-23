@@ -1,4 +1,4 @@
-use crate::{id::Id, DateTime};
+use crate::{id::Id, storage::Entity, DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,14 @@ pub struct Review {
     action: ReviewAction,
     comment: Option<String>,
     created_at: DateTime,
+}
+
+impl Entity for Review {
+    type Id = Id;
+
+    fn id(&self) -> Self::Id {
+        self.id
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, sqlx::Type, Copy)]

@@ -8,6 +8,7 @@ use crate::{
         update_fragment::UpdateFragmentCommand, Command, CommandType,
     },
     id::Id,
+    storage::Entity,
     DateTime,
 };
 use ::serde::de::DeserializeOwned;
@@ -29,7 +30,13 @@ pub struct Task {
     completed_at: Option<DateTime>,
 }
 
-impl Task {}
+impl Entity for Task {
+    type Id = Id;
+
+    fn id(&self) -> Self::Id {
+        self.id
+    }
+}
 
 #[derive(Debug, Type, Clone)]
 #[sqlx(transparent)]

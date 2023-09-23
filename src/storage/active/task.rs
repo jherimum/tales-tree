@@ -1,6 +1,6 @@
 use sqlx::PgExecutor;
 
-use crate::storage::{task::Task, StorageError};
+use crate::storage::{model::task::Task, StorageError};
 
 #[async_trait::async_trait]
 impl ActiveTask for Task {
