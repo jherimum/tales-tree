@@ -3,9 +3,8 @@ use crate::{
     actor::Actor,
     events::FragmentUpdatedEvent,
     id::Id,
-    storage::{fragment::Fragment, user::User, StorageError},
+    storage::{fragment::Fragment, user::User},
 };
-use chrono::Utc;
 use tap::TapFallible;
 
 impl Command for UpdateFragmentCommand {
@@ -25,17 +24,11 @@ pub enum UpdateFragmentCommandError {
     #[error("Fragment not found: {0}")]
     FragmentNotFound(Id),
 
-    #[error(transparent)]
-    Storage(#[from] StorageError),
-
     #[error("{0}")]
     Forbidden(&'static str),
 
     #[error("{0}")]
     InvalidState(&'static str),
-
-    #[error(transparent)]
-    Unexpected(#[from] anyhow::Error),
 }
 
 #[async_trait::async_trait]
@@ -67,7 +60,7 @@ impl CommandHandler for UpdateFragmentCommand {
 
         Ok(fragment
             .set_content(self.content.clone())
-            .set_last_modified_at(Utc::now().naive_utc())
+            .set_last_modified_at(ctx.clock().now())
             .update(ctx.tx().as_mut())
             .await
             .map(Into::into)

@@ -17,6 +17,7 @@ use tales_tree::{
 
 mod commons;
 mod fixtures;
+mod mock;
 
 #[sqlx::test]
 async fn test_command_bus(pool: PgPool) {

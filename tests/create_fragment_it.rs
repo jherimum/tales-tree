@@ -1,25 +1,28 @@
-use crate::{commons::create_context, fixtures::user::create_user};
+use crate::{
+    commons::create_context,
+    fixtures::user::create_user,
+    mock::{clock::fixed_clock, ids::fixed_id},
+};
 use chrono::Utc;
 use sqlx::PgPool;
 use tales_tree::{
-    clock::MockClock,
     commands::{create_fragment::CreateFragmentCommandBuilder, CommandHandler},
     events::FragmentCreatedEventBuilder,
-    id::{Id, MockIdGenerator},
+    id::Id,
     storage::fragment::{Fragment, FragmentBuilder, FragmentState, Path},
-    DateTime,
 };
 
 mod commons;
 mod fixtures;
+mod mock;
 
 #[sqlx::test]
 fn test_handle_success(pool: PgPool) {
     let created_at = Utc::now().naive_utc();
-    let clock = prepare_clock(created_at);
+    let clock = fixed_clock(created_at);
 
     let event_id = Id::new();
-    let ids = prepare_ids(event_id);
+    let ids = fixed_id(event_id);
 
     let user = create_user(&pool).await;
 
@@ -68,16 +71,4 @@ fn test_handle_success(pool: PgPool) {
     } else {
         panic!("a fragment should be crated")
     }
-}
-
-fn prepare_clock(time: DateTime) -> MockClock {
-    let mut clock = MockClock::default();
-    clock.expect_now().returning(move || time.clone());
-    clock
-}
-
-fn prepare_ids(id: Id) -> MockIdGenerator {
-    let mut ids = MockIdGenerator::default();
-    ids.expect_new().returning(move || id.clone());
-    ids
 }
