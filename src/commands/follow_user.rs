@@ -3,6 +3,7 @@ use crate::{
     events::UserFollowedEvent,
     id::Id,
     storage::{
+        active::follow::ActiveFollow,
         follow::{Follow, FollowBuilder},
         user::User,
     },

@@ -1,7 +1,10 @@
 use sqlx::PgPool;
 use tales_tree::{
     id::Id,
-    storage::user::{User, UserBuilder},
+    storage::{
+        active::user::ActiveUser,
+        user::{User, UserBuilder},
+    },
 };
 
 pub async fn create_user(pool: &PgPool) -> User {

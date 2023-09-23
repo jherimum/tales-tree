@@ -4,7 +4,8 @@ use crate::{
     events::FragmentLikedEvent,
     id::Id,
     storage::{
-        fragment::{ActiveFragment, Fragment},
+        active::{fragment::ActiveFragment, like::ActiveLike},
+        fragment::Fragment,
         like::{Like, LikeBuilder},
         user::User,
     },
@@ -57,7 +58,7 @@ impl CommandHandler for LikeFragmentCommand {
             Some(_) => Ok(None),
             None => Ok(LikeBuilder::default()
                 .fragment_id(*frag.id())
-                .user_id(user)
+                .user_id(*user.id())
                 .created_at(Utc::now().naive_utc())
                 .build()
                 .tap_err(|e| tracing::error!("Failed to build like: {}", e))

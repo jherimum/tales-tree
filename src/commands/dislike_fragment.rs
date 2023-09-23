@@ -4,7 +4,8 @@ use crate::{
     events::FragmentDislikedEvent,
     id::Id,
     storage::{
-        fragment::{ActiveFragment, Fragment},
+        active::{fragment::ActiveFragment, like::ActiveLike},
+        fragment::Fragment,
         like::Like,
         user::User,
     },

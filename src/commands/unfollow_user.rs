@@ -2,7 +2,7 @@ use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext, Com
 use crate::{
     events::UserUnfollowedEvent,
     id::Id,
-    storage::{follow::Follow, user::User},
+    storage::{active::follow::ActiveFollow, follow::Follow, user::User},
 };
 use tap::TapFallible;
 

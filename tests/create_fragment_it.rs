@@ -9,7 +9,10 @@ use tales_tree::{
     commands::{create_fragment::CreateFragmentCommandBuilder, CommandHandler},
     events::FragmentCreatedEventBuilder,
     id::Id,
-    storage::fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState, Path},
+    storage::{
+        active::fragment::ActiveFragment,
+        fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+    },
 };
 
 mod commons;

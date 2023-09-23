@@ -20,7 +20,10 @@ use tales_tree::{
     },
     events::FragmentUpdatedEventBuilder,
     id::{Id, MockIdGenerator},
-    storage::fragment::{ActiveFragment, Fragment, FragmentBuilder},
+    storage::{
+        active::fragment::ActiveFragment,
+        fragment::{Fragment, FragmentBuilder},
+    },
 };
 
 #[sqlx::test]

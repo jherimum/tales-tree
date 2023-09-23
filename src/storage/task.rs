@@ -15,9 +15,7 @@ use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::Serialize;
 use serde_json::Value;
-use sqlx::{FromRow, PgExecutor, Type};
-
-use super::StorageError;
+use sqlx::{FromRow, Type};
 
 #[derive(Debug, FromRow, Getters, Builder)]
 pub struct Task {
@@ -31,25 +29,7 @@ pub struct Task {
     completed_at: Option<DateTime>,
 }
 
-impl Task {
-    pub async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Task, StorageError> {
-        Ok(sqlx::query_as(
-            r#"
-            INSERT INTO tasks 
-            (id, command_type, command_data, actor_type, actor_id, created_at, scheduled_at) 
-            VALUES ( $1, $2, $3, $4, $5, $6, $7, $8 ) RETURNING *"#,
-        )
-        .bind(self.id)
-        .bind(self.command_type)
-        .bind(self.commnad_data)
-        .bind(self.actor_type)
-        .bind(self.actor_id)
-        .bind(self.created_at)
-        .bind(self.scheduled_at)
-        .fetch_one(exec)
-        .await?)
-    }
-}
+impl Task {}
 
 #[derive(Debug, Type, Clone)]
 #[sqlx(transparent)]

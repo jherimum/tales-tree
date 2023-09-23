@@ -2,7 +2,10 @@ use chrono::Utc;
 use sqlx::PgPool;
 use tales_tree::{
     id::Id,
-    storage::fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState, Path},
+    storage::{
+        active::fragment::ActiveFragment,
+        fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+    },
 };
 
 #[sqlx::test]

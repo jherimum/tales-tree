@@ -4,7 +4,8 @@ use crate::{
     events::FragmentForkedEvent,
     id::Id,
     storage::{
-        fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState},
+        active::{fragment::ActiveFragment, user::ActiveUser},
+        fragment::{Fragment, FragmentBuilder, FragmentState},
         user::User,
     },
 };
@@ -75,7 +76,7 @@ impl CommandHandler for ForkFragmentCommand {
 
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)
-            .author_id(user)
+            .author_id(*user.id())
             .content(self.content.clone())
             .parent_id(Some(self.parent_fragment_id))
             .state(FragmentState::Draft)

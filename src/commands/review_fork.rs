@@ -3,7 +3,8 @@ use crate::{
     events::FragmentForkReviewedEvent,
     id::Id,
     storage::{
-        fragment::{ActiveFragment, Fragment, FragmentState},
+        active::{fragment::ActiveFragment, review::ActiveReview},
+        fragment::{Fragment, FragmentState},
         review::{Review, ReviewAction, ReviewBuilder},
         user::User,
     },

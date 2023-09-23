@@ -1,9 +1,8 @@
-use super::StorageError;
 use crate::{id::Id, DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgExecutor};
+use sqlx::FromRow;
 
 #[derive(Debug, Builder, Clone, FromRow, Getters)]
 #[builder(setter(into))]
@@ -14,12 +13,6 @@ pub struct Review {
     action: ReviewAction,
     comment: Option<String>,
     created_at: DateTime,
-}
-
-impl Review {
-    pub async fn save<'e, E: PgExecutor<'e>>(self, _: E) -> Result<Self, StorageError> {
-        todo!()
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, sqlx::Type, Copy)]

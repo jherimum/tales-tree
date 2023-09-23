@@ -14,7 +14,12 @@ use crate::{
     clock::Clock,
     events::Event,
     id::{Id, IdGenerator},
-    storage::{event::DbEvent, task::TaskBuilder, StorageError},
+    storage::{
+        active::{event::ActiveEvent, task::ActiveTask},
+        event::DbEvent,
+        task::TaskBuilder,
+        StorageError,
+    },
     DateTime,
 };
 use chrono::Utc;

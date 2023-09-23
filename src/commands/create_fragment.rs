@@ -3,7 +3,8 @@ use crate::{
     actor::Actor,
     events::{FragmentCreatedEvent, FragmentCreatedEventBuilder},
     storage::{
-        fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState},
+        active::fragment::ActiveFragment,
+        fragment::{Fragment, FragmentBuilder, FragmentState},
         user::User,
     },
     Id,
@@ -39,7 +40,7 @@ impl CommandHandler for CreateFragmentCommand {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)
-            .author_id(User::try_from(ctx.actor()).unwrap())
+            .author_id(*User::try_from(ctx.actor()).unwrap().id())
             .content(self.content.clone())
             .state(FragmentState::Draft)
             .created_at(now)

@@ -6,6 +6,8 @@ pub mod review;
 pub mod task;
 pub mod user;
 
+pub mod active;
+
 use crate::Id;
 
 #[derive(Debug, thiserror::Error)]

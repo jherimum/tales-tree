@@ -3,10 +3,7 @@ use crate::{
     actor::Actor,
     events::FragmentUpdatedEvent,
     id::Id,
-    storage::{
-        fragment::{ActiveFragment, Fragment},
-        user::User,
-    },
+    storage::{active::fragment::ActiveFragment, fragment::Fragment, user::User},
 };
 use derive_getters::Getters;
 use tap::TapFallible;
