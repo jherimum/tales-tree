@@ -9,7 +9,7 @@ use tales_tree::{
     commands::{create_fragment::CreateFragmentCommandBuilder, CommandHandler},
     events::FragmentCreatedEventBuilder,
     id::Id,
-    storage::fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+    storage::fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState, Path},
 };
 
 mod commons;
@@ -26,7 +26,7 @@ fn test_handle_success(pool: PgPool) {
 
     let user = create_user(&pool).await;
 
-    let mut ctx = create_context(&pool, user.clone(), clock, ids).await;
+    let mut ctx = create_context(&pool, &user, clock, ids).await;
 
     let command = CreateFragmentCommandBuilder::default()
         .fragment_id(Id::new())

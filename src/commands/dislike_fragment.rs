@@ -3,7 +3,11 @@ use crate::{
     actor::Actor,
     events::FragmentDislikedEvent,
     id::Id,
-    storage::{fragment::Fragment, like::Like, user::User},
+    storage::{
+        fragment::{ActiveFragment, Fragment},
+        like::Like,
+        user::User,
+    },
 };
 use chrono::Utc;
 use tap::TapFallible;
@@ -45,7 +49,7 @@ impl CommandHandler for DislikeFragmentCommand {
             return Err(DislikeFragmentCommandError::FragmentNotPublished(self.fragment_id).into());
         }
 
-        let actual_like = Like::find(ctx.pool(), &frag.id(), &user.id())
+        let actual_like = Like::find(ctx.pool(), frag.id(), user.id())
             .await
             .tap_err(|e| tracing::error!("Failed to find like: {}", e))?;
 

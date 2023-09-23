@@ -98,7 +98,8 @@ impl Event for FragmentPublishedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Builder, PartialEq, Eq)]
+#[builder(setter(into))]
 pub struct FragmentUpdatedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,

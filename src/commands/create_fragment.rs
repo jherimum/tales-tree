@@ -3,7 +3,7 @@ use crate::{
     actor::Actor,
     events::{FragmentCreatedEvent, FragmentCreatedEventBuilder},
     storage::{
-        fragment::{Fragment, FragmentBuilder, FragmentState},
+        fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState},
         user::User,
     },
     Id,

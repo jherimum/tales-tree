@@ -40,8 +40,8 @@ impl User {
     }
 }
 
-impl Into<Id> for User {
-    fn into(self) -> Id {
-        self.id
+impl From<User> for Id {
+    fn from(value: User) -> Self {
+        value.id
     }
 }

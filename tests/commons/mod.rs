@@ -5,13 +5,18 @@ use tales_tree::{
     storage::user::User,
 };
 
-pub async fn create_context<C: Clock + 'static, I: IdGenerator + 'static>(
+pub async fn create_context<'ctx, C: Clock + 'static, I: IdGenerator + 'static>(
     pool: &PgPool,
-    user: User,
+    user: &User,
     clock: C,
     ids: I,
-) -> CommandHandlerContext {
-    CommandHandlerContext::new(pool, &Actor::User(user), Arc::new(clock), Arc::new(ids))
-        .await
-        .unwrap()
+) -> CommandHandlerContext<'ctx> {
+    CommandHandlerContext::new(
+        pool,
+        &Actor::User(user.clone()),
+        Arc::new(clock),
+        Arc::new(ids),
+    )
+    .await
+    .unwrap()
 }

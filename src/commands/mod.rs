@@ -261,6 +261,10 @@ impl<'ctx> CommandHandlerContext<'ctx> {
         self.clock.as_ref()
     }
 
+    pub fn ids(&self) -> &dyn IdGenerator {
+        self.ids.as_ref()
+    }
+
     pub async fn new(
         pool: &PgPool,
         actor: &Actor,

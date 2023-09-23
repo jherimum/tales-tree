@@ -4,7 +4,7 @@ use crate::{
     events::FragmentPublishedEvent,
     id::Id,
     storage::{
-        fragment::{Fragment, FragmentState},
+        fragment::{ActiveFragment, Fragment, FragmentState},
         user::User,
     },
 };

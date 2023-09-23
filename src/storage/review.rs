@@ -17,7 +17,7 @@ pub struct Review {
 }
 
 impl Review {
-    pub async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
+    pub async fn save<'e, E: PgExecutor<'e>>(self, _: E) -> Result<Self, StorageError> {
         todo!()
     }
 }

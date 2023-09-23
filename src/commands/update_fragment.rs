@@ -3,8 +3,12 @@ use crate::{
     actor::Actor,
     events::FragmentUpdatedEvent,
     id::Id,
-    storage::{fragment::Fragment, user::User},
+    storage::{
+        fragment::{ActiveFragment, Fragment},
+        user::User,
+    },
 };
+use derive_getters::Getters;
 use tap::TapFallible;
 
 impl Command for UpdateFragmentCommand {
@@ -13,22 +17,23 @@ impl Command for UpdateFragmentCommand {
     }
 }
 
-#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize, Getters)]
+#[builder(setter(into))]
 pub struct UpdateFragmentCommand {
     fragment_id: Id,
     content: String,
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum UpdateFragmentCommandError {
     #[error("Fragment not found: {0}")]
     FragmentNotFound(Id),
 
     #[error("{0}")]
-    Forbidden(&'static str),
+    UserWithoutPermission(Id),
 
-    #[error("{0}")]
-    InvalidState(&'static str),
+    #[error("Fragment {0} is not editable")]
+    NonEditableFragment(Id),
 }
 
 #[async_trait::async_trait]
@@ -46,16 +51,11 @@ impl CommandHandler for UpdateFragmentCommand {
         )?;
 
         if !fragment.is_author(&user) {
-            return Err(UpdateFragmentCommandError::Forbidden(
-                "Only the author can update a fragment",
-            )
-            .into());
+            return Err(UpdateFragmentCommandError::UserWithoutPermission(*user.id()).into());
         }
 
         if !fragment.is_editable() {
-            return Err(
-                UpdateFragmentCommandError::InvalidState("Fragment cannot be edited").into(),
-            );
+            return Err(UpdateFragmentCommandError::NonEditableFragment(self.fragment_id).into());
         }
 
         Ok(fragment

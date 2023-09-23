@@ -36,10 +36,7 @@ impl From<&Actor> for Option<Id> {
 
 impl Actor {
     pub fn is_user(&self) -> bool {
-        match self {
-            Actor::User(_) => true,
-            _ => false,
-        }
+        matches!(self, Actor::User(_))
     }
 }
 

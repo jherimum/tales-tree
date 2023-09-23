@@ -4,7 +4,7 @@ use crate::{
     events::FragmentForkedEvent,
     id::Id,
     storage::{
-        fragment::{Fragment, FragmentBuilder, FragmentState},
+        fragment::{ActiveFragment, Fragment, FragmentBuilder, FragmentState},
         user::User,
     },
 };
@@ -81,7 +81,7 @@ impl CommandHandler for ForkFragmentCommand {
             .state(FragmentState::Draft)
             .created_at(Utc::now().naive_utc())
             .last_modified_at(Utc::now().naive_utc())
-            .path(parent_frag.path().append(self.parent_fragment_id.clone()))
+            .path(parent_frag.path().append(self.parent_fragment_id))
             .build()
             .tap_err(|e| tracing::error!("Failed to build fragment: {e}"))
             .map_err(anyhow::Error::from)?
