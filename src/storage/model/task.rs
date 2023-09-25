@@ -1,16 +1,4 @@
-use crate::{
-    actor::ActorType,
-    commands::{
-        create_fragment::CreateFragmentCommand, dislike_fragment::DislikeFragmentCommand,
-        follow_user::FollowUserCommand, fork_fragment::ForkFragmentCommand,
-        like_fragment::LikeFragmentCommand, publish_fragment::PublishFragmentCommand,
-        review_fork::ReviewForkCommand, unfollow_user::UnfollowUserCommand,
-        update_fragment::UpdateFragmentCommand, Command, CommandType,
-    },
-    id::Id,
-    storage::Entity,
-    DateTime,
-};
+use crate::{actor::ActorType, commands::CommandType, id::Id, storage::Entity, DateTime};
 use ::serde::de::DeserializeOwned;
 use derive_builder::Builder;
 use derive_getters::Getters;
@@ -53,34 +41,3 @@ impl CommandData {
         serde_json::from_value(self.0).unwrap()
     }
 }
-
-// impl From<Task> for Box<dyn Command> {
-//     fn from(value: Task) -> Self {
-//         type Type = CommandType;
-//         match value.command_type {
-//             Type::CreateFragment => {
-//                 Box::new(value.commnad_data.into_command::<CreateFragmentCommand>())
-//             }
-//             Type::FollowUser => Box::new(value.commnad_data.into_command::<FollowUserCommand>()),
-//             Type::UnfollowUser => {
-//                 Box::new(value.commnad_data.into_command::<UnfollowUserCommand>())
-//             }
-//             Type::LikeFragment => {
-//                 Box::new(value.commnad_data.into_command::<LikeFragmentCommand>())
-//             }
-//             Type::DislikeFragment => {
-//                 Box::new(value.commnad_data.into_command::<DislikeFragmentCommand>())
-//             }
-//             Type::ForkFragment => {
-//                 Box::new(value.commnad_data.into_command::<ForkFragmentCommand>())
-//             }
-//             Type::PublishFragment => {
-//                 Box::new(value.commnad_data.into_command::<PublishFragmentCommand>())
-//             }
-//             Type::UpdateFragment => {
-//                 Box::new(value.commnad_data.into_command::<UpdateFragmentCommand>())
-//             }
-//             Type::ReviewFork => Box::new(value.commnad_data.into_command::<ReviewForkCommand>()),
-//         }
-//     }
-// }

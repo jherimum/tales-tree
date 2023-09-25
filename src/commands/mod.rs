@@ -86,29 +86,22 @@ pub enum CommandBusError {
 
 #[async_trait::async_trait]
 pub trait CommandBus {
-    async fn dispatch<C, E>(
+    async fn dispatch<C>(
         &self,
         actor: &Actor,
         command: C,
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
-        C: CommandHandler + Debug + Serialize + Command + Send + Sync,
-        E: Into<CommandBusError>;
+        C: CommandHandler + Debug + Serialize + Command + Send + Sync;
 
-    async fn async_execute<C, E>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    async fn async_execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + 'static + Send + Sync + Debug + Command,
-        E: Into<CommandBusError>;
+        C: CommandHandler + 'static + Send + Sync + Debug + Command;
 
-    async fn execute<C, E>(
-        &self,
-        actor: &Actor,
-        command: C,
-    ) -> Result<Option<C::Event>, CommandBusError>
+    async fn execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + Send + Sync + Debug + Command,
-        E: Into<CommandBusError>;
+        C: CommandHandler + Send + Sync + Debug + Command;
 }
 
 #[derive(Clone)]
@@ -126,7 +119,7 @@ impl SimpleCommandBus {
 
 #[async_trait::async_trait]
 impl CommandBus for SimpleCommandBus {
-    async fn dispatch<C, E>(
+    async fn dispatch<C>(
         &self,
         actor: &Actor,
         command: C,
@@ -134,7 +127,6 @@ impl CommandBus for SimpleCommandBus {
     ) -> Result<Id, CommandBusError>
     where
         C: CommandHandler + Debug + Serialize + Command + Send + Sync,
-        E: Into<CommandBusError>,
     {
         if !command.supports(actor) {
             tracing::error!("Actor [{actor:?}] is not allowed to execute command [{command:?}]");
@@ -155,35 +147,29 @@ impl CommandBus for SimpleCommandBus {
             .map(|t| *t.id())?)
     }
 
-    async fn async_execute<C, E>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    async fn async_execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
         C: CommandHandler + 'static + Send + Sync + Debug + Command,
-        E: Into<CommandBusError>,
     {
         tokio::spawn(
-            Executor::new(
-                self.pool.clone(),
-                actor.clone(),
+            InnerExecutor {
+                pool: self.pool.clone(),
+                actor: actor.clone(),
                 command,
-                self.clock.clone(),
-                self.ids.clone(),
-            )
+                clock: self.clock.clone(),
+                ids: self.ids.clone(),
+            }
             .execute(),
         );
 
         Ok(())
     }
 
-    async fn execute<C, E>(
-        &self,
-        actor: &Actor,
-        command: C,
-    ) -> Result<Option<C::Event>, CommandBusError>
+    async fn execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
         C: CommandHandler + Send + Sync + Debug + Command,
-        E: Into<CommandBusError>,
     {
-        Executor {
+        InnerExecutor {
             pool: self.pool.clone(),
             actor: actor.clone(),
             command,
@@ -195,7 +181,7 @@ impl CommandBus for SimpleCommandBus {
     }
 }
 
-pub struct Executor<C> {
+struct InnerExecutor<C> {
     pool: PgPool,
     actor: Actor,
     command: C,
@@ -203,24 +189,8 @@ pub struct Executor<C> {
     ids: Arc<dyn IdGenerator>,
 }
 
-impl<C: CommandHandler + Debug + Send + Sync + Command> Executor<C> {
-    pub fn new(
-        pool: PgPool,
-        actor: Actor,
-        command: C,
-        clock: Arc<dyn Clock>,
-        ids: Arc<dyn IdGenerator>,
-    ) -> Self {
-        Self {
-            pool,
-            actor,
-            command,
-            clock,
-            ids,
-        }
-    }
-
-    pub async fn execute(self) -> Result<Option<C::Event>, CommandBusError> {
+impl<C: CommandHandler + Debug + Send + Sync + Command> InnerExecutor<C> {
+    pub async fn execute(self) -> Result<(), CommandBusError> {
         if !self.command.supports(&self.actor) {
             tracing::error!(
                 "Actor [{:?}] is not allowed to execute command [{:?}]",
@@ -253,7 +223,7 @@ impl<C: CommandHandler + Debug + Send + Sync + Command> Executor<C> {
                     .commit()
                     .await
                     .tap_err(|e| tracing::error!("Failed to commit tx: {e}"))?;
-                Ok(result)
+                Ok(())
             }
             Err(e) => {
                 ctx.tx
@@ -261,7 +231,7 @@ impl<C: CommandHandler + Debug + Send + Sync + Command> Executor<C> {
                     .rollback()
                     .await
                     .tap_err(|e| tracing::error!("Failed to rollback tx: {e}"))?;
-                Err(e)
+                Err(e.into())
             }
         }
     }
