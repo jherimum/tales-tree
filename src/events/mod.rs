@@ -1,6 +1,8 @@
+use std::fmt::Debug;
+
 use derive_builder::Builder;
 use derive_getters::Getters;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sqlx::Type;
 
 use crate::{id::Id, storage::model::review::ReviewAction, DateTime};
@@ -19,9 +21,8 @@ pub enum EventType {
     UserUnfollowed,
 }
 
-pub trait Event
-where
-    Self: Serialize + Clone,
+pub trait Event:
+    Serialize + DeserializeOwned + Debug + Clone + PartialEq + Eq + Send + Sync
 {
     fn event_type(&self) -> EventType;
     fn data(&self) -> Self {
@@ -48,7 +49,7 @@ impl Event for FragmentCreatedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentDislikedEvent {
     pub fragment_id: Id,
     pub user_id: Id,
@@ -64,7 +65,7 @@ impl Event for FragmentDislikedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentForkedEvent {
     pub fragment_id: Id,
     pub parent_fragment_id: Id,
@@ -82,7 +83,7 @@ impl Event for FragmentForkedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentPublishedEvent {
     pub fragment_id: Id,
     pub user_id: Id,
@@ -98,7 +99,7 @@ impl Event for FragmentPublishedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Builder, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 #[builder(setter(into))]
 pub struct FragmentUpdatedEvent {
     pub fragment_id: Id,
@@ -116,7 +117,7 @@ impl Event for FragmentUpdatedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentForkReviewedEvent {
     pub fragment_id: Id,
     pub reviewer_id: Id,
@@ -134,7 +135,7 @@ impl Event for FragmentForkReviewedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentLikedEvent {
     pub fragment_id: Id,
     pub user_id: Id,
@@ -150,7 +151,7 @@ impl Event for FragmentLikedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct UserFollowedEvent {
     pub follower_id: Id,
     pub followee_id: Id,
@@ -166,7 +167,7 @@ impl Event for UserFollowedEvent {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct UserUnfollowedEvent {
     pub follower_id: Id,
     pub followee_id: Id,

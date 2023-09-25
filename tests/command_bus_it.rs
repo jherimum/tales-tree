@@ -8,7 +8,7 @@ use tales_tree::{
         create_fragment::{
             CreateFragmentCommand, CreateFragmentCommandBuilder, CreateFragmentCommandError,
         },
-        CommandBus,
+        SimpleCommandBus,
     },
     events::{EventType, FragmentCreatedEvent},
     id::{Id, MockIdGenerator},

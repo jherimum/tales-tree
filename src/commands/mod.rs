@@ -84,26 +84,56 @@ pub enum CommandBusError {
     Unexpected(#[from] anyhow::Error),
 }
 
-#[derive(Clone)]
-pub struct CommandBus {
-    pool: PgPool,
-    clock: Arc<dyn Clock>,
-    ids: Arc<dyn IdGenerator>,
-}
-
-impl CommandBus {
-    pub fn new(pool: PgPool, clock: Arc<dyn Clock>, ids: Arc<dyn IdGenerator>) -> Self {
-        Self { pool, clock, ids }
-    }
-
-    pub async fn dispatch<C, E>(
+#[async_trait::async_trait]
+pub trait CommandBus {
+    async fn dispatch<C, E>(
         &self,
         actor: &Actor,
         command: C,
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
-        C: CommandHandler,
+        C: CommandHandler + Debug + Serialize + Command + Send + Sync,
+        E: Into<CommandBusError>;
+
+    async fn async_execute<C, E>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    where
+        C: CommandHandler + 'static + Send + Sync + Debug + Command,
+        E: Into<CommandBusError>;
+
+    async fn execute<C, E>(
+        &self,
+        actor: &Actor,
+        command: C,
+    ) -> Result<Option<C::Event>, CommandBusError>
+    where
+        C: CommandHandler + Send + Sync + Debug + Command,
+        E: Into<CommandBusError>;
+}
+
+#[derive(Clone)]
+pub struct SimpleCommandBus {
+    pool: PgPool,
+    clock: Arc<dyn Clock>,
+    ids: Arc<dyn IdGenerator>,
+}
+
+impl SimpleCommandBus {
+    pub fn new(pool: PgPool, clock: Arc<dyn Clock>, ids: Arc<dyn IdGenerator>) -> Self {
+        Self { pool, clock, ids }
+    }
+}
+
+#[async_trait::async_trait]
+impl CommandBus for SimpleCommandBus {
+    async fn dispatch<C, E>(
+        &self,
+        actor: &Actor,
+        command: C,
+        schedule_to: Option<DateTime>,
+    ) -> Result<Id, CommandBusError>
+    where
+        C: CommandHandler + Debug + Serialize + Command + Send + Sync,
         E: Into<CommandBusError>,
     {
         if !command.supports(actor) {
@@ -125,13 +155,9 @@ impl CommandBus {
             .map(|t| *t.id())?)
     }
 
-    pub async fn async_execute<C, E>(
-        &self,
-        actor: &Actor,
-        command: C,
-    ) -> Result<(), CommandBusError>
+    async fn async_execute<C, E>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + Send + Sync + Clone + 'static,
+        C: CommandHandler + 'static + Send + Sync + Debug + Command,
         E: Into<CommandBusError>,
     {
         tokio::spawn(
@@ -148,13 +174,13 @@ impl CommandBus {
         Ok(())
     }
 
-    pub async fn execute<C, E>(
+    async fn execute<C, E>(
         &self,
         actor: &Actor,
         command: C,
     ) -> Result<Option<C::Event>, CommandBusError>
     where
-        C: CommandHandler + Send + Sync,
+        C: CommandHandler + Send + Sync + Debug + Command,
         E: Into<CommandBusError>,
     {
         Executor {
@@ -177,7 +203,7 @@ pub struct Executor<C> {
     ids: Arc<dyn IdGenerator>,
 }
 
-impl<C: CommandHandler> Executor<C> {
+impl<C: CommandHandler + Debug + Send + Sync + Command> Executor<C> {
     pub fn new(
         pool: PgPool,
         actor: Actor,
@@ -291,11 +317,8 @@ pub trait Command {
 }
 
 #[async_trait::async_trait]
-pub trait CommandHandler: Debug + Send + Serialize
-where
-    Self: Command,
-{
-    type Event: Event + Debug + Send + Sync;
+pub trait CommandHandler {
+    type Event: Event;
 
     async fn handle(
         &self,

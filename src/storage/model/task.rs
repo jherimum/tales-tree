@@ -54,33 +54,33 @@ impl CommandData {
     }
 }
 
-impl From<Task> for Box<dyn Command> {
-    fn from(value: Task) -> Self {
-        type Type = CommandType;
-        match value.command_type {
-            Type::CreateFragment => {
-                Box::new(value.commnad_data.into_command::<CreateFragmentCommand>())
-            }
-            Type::FollowUser => Box::new(value.commnad_data.into_command::<FollowUserCommand>()),
-            Type::UnfollowUser => {
-                Box::new(value.commnad_data.into_command::<UnfollowUserCommand>())
-            }
-            Type::LikeFragment => {
-                Box::new(value.commnad_data.into_command::<LikeFragmentCommand>())
-            }
-            Type::DislikeFragment => {
-                Box::new(value.commnad_data.into_command::<DislikeFragmentCommand>())
-            }
-            Type::ForkFragment => {
-                Box::new(value.commnad_data.into_command::<ForkFragmentCommand>())
-            }
-            Type::PublishFragment => {
-                Box::new(value.commnad_data.into_command::<PublishFragmentCommand>())
-            }
-            Type::UpdateFragment => {
-                Box::new(value.commnad_data.into_command::<UpdateFragmentCommand>())
-            }
-            Type::ReviewFork => Box::new(value.commnad_data.into_command::<ReviewForkCommand>()),
-        }
-    }
-}
+// impl From<Task> for Box<dyn Command> {
+//     fn from(value: Task) -> Self {
+//         type Type = CommandType;
+//         match value.command_type {
+//             Type::CreateFragment => {
+//                 Box::new(value.commnad_data.into_command::<CreateFragmentCommand>())
+//             }
+//             Type::FollowUser => Box::new(value.commnad_data.into_command::<FollowUserCommand>()),
+//             Type::UnfollowUser => {
+//                 Box::new(value.commnad_data.into_command::<UnfollowUserCommand>())
+//             }
+//             Type::LikeFragment => {
+//                 Box::new(value.commnad_data.into_command::<LikeFragmentCommand>())
+//             }
+//             Type::DislikeFragment => {
+//                 Box::new(value.commnad_data.into_command::<DislikeFragmentCommand>())
+//             }
+//             Type::ForkFragment => {
+//                 Box::new(value.commnad_data.into_command::<ForkFragmentCommand>())
+//             }
+//             Type::PublishFragment => {
+//                 Box::new(value.commnad_data.into_command::<PublishFragmentCommand>())
+//             }
+//             Type::UpdateFragment => {
+//                 Box::new(value.commnad_data.into_command::<UpdateFragmentCommand>())
+//             }
+//             Type::ReviewFork => Box::new(value.commnad_data.into_command::<ReviewForkCommand>()),
+//         }
+//     }
+// }
