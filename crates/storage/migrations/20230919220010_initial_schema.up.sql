@@ -38,6 +38,8 @@ create table fragments(
     path                uuid[]          not null,
     created_at          timestamp       not null,
     last_modified_at    timestamp       not null,
+    _end                 boolean             not null,
+    
     
     constraint fragments_pk primary key (id),
     constraint fragments_fk_author foreign key (author_id) references users(id),

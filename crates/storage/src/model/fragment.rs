@@ -56,6 +56,7 @@ pub struct Fragment {
     #[setters(skip)]
     path: Path,
 
+    #[sqlx(rename = "_end")]
     end: bool,
 
     #[setters(skip)]

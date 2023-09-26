@@ -29,17 +29,18 @@ use storage::{
     model::fragment::{Fragment, FragmentBuilder},
 };
 
-#[sqlx::test]
+#[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_success_draft_update(pool: PgPool) {
     const OLD_CONTENT: &str = "content";
     const NEW_CONTENT: &str = "new content";
 
     let user = create_user(&pool).await;
-    let draft = create_draft(&pool, &user, OLD_CONTENT).await;
+    let draft = create_draft(&pool, &user, OLD_CONTENT, false).await;
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*draft.id())
         .content(NEW_CONTENT)
+        .end(true)
         .build()
         .unwrap();
 
@@ -56,6 +57,7 @@ fn test_success_draft_update(pool: PgPool) {
                 .content(NEW_CONTENT)
                 .user_id(*user.id())
                 .timestamp(now.clone())
+                .end(true)
                 .build()
                 .unwrap()
         )
@@ -76,6 +78,7 @@ fn test_success_draft_update(pool: PgPool) {
             .content(NEW_CONTENT)
             .state(draft.state().clone())
             .parent_id(draft.parent_id().clone())
+            .end(true)
             .created_at(*draft.created_at())
             .last_modified_at(now)
             .build()
@@ -83,15 +86,16 @@ fn test_success_draft_update(pool: PgPool) {
     );
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_actor_not_author(pool: PgPool) {
     let author = create_user(&pool).await;
-    let draft = create_draft(&pool, &author, "content").await;
+    let draft = create_draft(&pool, &author, "content", false).await;
     let other_user = create_user(&pool).await;
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*draft.id())
         .content("new content")
+        .end(true)
         .build()
         .unwrap();
 
@@ -113,14 +117,15 @@ fn test_actor_not_author(pool: PgPool) {
     }
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_non_editable_fragment(pool: PgPool) {
     let author = create_user(&pool).await;
-    let published = create_published(&pool, &author, "content").await;
+    let published = create_published(&pool, &author, "content", false).await;
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*published.id())
         .content("new content")
+        .end(true)
         .build()
         .unwrap();
 
@@ -142,13 +147,14 @@ fn test_non_editable_fragment(pool: PgPool) {
     }
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_fragment_not_found(pool: PgPool) {
     let user = create_user(&pool).await;
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(Id::new())
         .content("new content")
+        .end(true)
         .build()
         .unwrap();
 

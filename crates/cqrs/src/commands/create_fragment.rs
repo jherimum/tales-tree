@@ -61,6 +61,7 @@ impl From<Fragment> for FragmentCreatedEvent {
             .user_id(*value.author_id())
             .content(value.content().clone())
             .timestamp(*value.created_at())
+            .end(*value.end())
             .build()
             .unwrap()
     }

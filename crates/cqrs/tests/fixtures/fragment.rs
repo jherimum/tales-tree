@@ -9,7 +9,7 @@ use storage::{
     },
 };
 
-pub async fn create_draft(pool: &PgPool, user: &User, content: &str) -> Fragment {
+pub async fn create_draft(pool: &PgPool, user: &User, content: &str, end: bool) -> Fragment {
     FragmentBuilder::default()
         .id(Id::new())
         .content(String::from(content))
@@ -19,6 +19,7 @@ pub async fn create_draft(pool: &PgPool, user: &User, content: &str) -> Fragment
         .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
+        .end(end)
         .build()
         .unwrap()
         .save(pool)
@@ -26,13 +27,14 @@ pub async fn create_draft(pool: &PgPool, user: &User, content: &str) -> Fragment
         .unwrap()
 }
 
-pub async fn create_published(pool: &PgPool, user: &User, content: &str) -> Fragment {
+pub async fn create_published(pool: &PgPool, user: &User, content: &str, end: bool) -> Fragment {
     FragmentBuilder::default()
         .id(Id::new())
         .content(String::from(content))
         .state(FragmentState::Published)
         .parent_id(None)
         .path(Path::default())
+        .end(end)
         .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())

@@ -75,6 +75,7 @@ impl From<Fragment> for FragmentUpdatedEvent {
             fragment_id: *value.id(),
             content: value.content().clone(),
             timestamp: *value.last_modified_at(),
+            end: *value.end(),
         }
     }
 }

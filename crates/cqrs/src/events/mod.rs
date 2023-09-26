@@ -11,6 +11,7 @@ pub struct FragmentCreatedEvent {
     user_id: Id,
     content: String,
     timestamp: DateTime,
+    end: bool,
 }
 
 impl Event for FragmentCreatedEvent {
@@ -79,6 +80,7 @@ pub struct FragmentUpdatedEvent {
     pub timestamp: DateTime,
     pub user_id: Id,
     pub content: String,
+    pub end: bool,
 }
 
 impl Event for FragmentUpdatedEvent {

@@ -1,6 +1,8 @@
 pub mod active;
 pub mod model;
 
+pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!();
+
 #[derive(Debug, thiserror::Error)]
 pub enum StorageError {
     #[error(transparent)]

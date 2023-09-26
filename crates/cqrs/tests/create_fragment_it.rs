@@ -19,7 +19,7 @@ mod commons;
 mod fixtures;
 mod mock;
 
-#[sqlx::test]
+#[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_handle_success(pool: PgPool) {
     let created_at = Utc::now().naive_utc();
     let clock = fixed_clock(created_at);
@@ -34,6 +34,7 @@ fn test_handle_success(pool: PgPool) {
     let command = CreateFragmentCommandBuilder::default()
         .fragment_id(Id::new())
         .content("Fragment".to_owned())
+        .end(false)
         .build()
         .unwrap();
 
@@ -46,6 +47,7 @@ fn test_handle_success(pool: PgPool) {
                 .content(command.content().clone())
                 .user_id(*user.id())
                 .timestamp(created_at)
+                .end(false)
                 .build()
                 .unwrap()
         );
@@ -66,6 +68,7 @@ fn test_handle_success(pool: PgPool) {
                 .state(FragmentState::Draft)
                 .parent_id(None)
                 .path(Path::empty())
+                .end(false)
                 .created_at(created_at)
                 .last_modified_at(created_at)
                 .build()
