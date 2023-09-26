@@ -8,8 +8,6 @@ edition = "2021"
 commons = { path = "../../crates/commons" }
 
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-anyhow = { workspace = true }
-tap = { workspace = true }
 uuid = { workspace = true, features = ["fast-rng", "v4", "serde"] }
 thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

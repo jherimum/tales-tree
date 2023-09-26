@@ -5,19 +5,14 @@ edition = "2021"
 
 [dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-anyhow = { workspace = true }
-tap = { workspace = true }
 uuid = { workspace = true, features = ["fast-rng", "v4", "serde"] }
 thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-derive-getters = { workspace = true }
 sqlx = { workspace = true, features = ["postgres", "runtime-tokio-rustls"] }
 chrono = { workspace = true }
-async-trait = { workspace = true }
-derive_builder = { workspace = true }
 mockall = { workspace = true }
 tracing = { workspace = true }
-derive_setters = { workspace = true }
+
 
 [dev-dependencies]

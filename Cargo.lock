@@ -194,17 +194,11 @@ dependencies = [
 name = "commons"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "async-trait",
  "chrono",
- "derive-getters",
- "derive_builder",
- "derive_setters",
  "mockall",
  "serde",
  "serde_json",
  "sqlx",
- "tap",
  "thiserror",
  "tokio",
  "tracing",
@@ -1826,7 +1820,6 @@ dependencies = [
 name = "storage"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-trait",
  "chrono",
  "commons",
@@ -1837,7 +1830,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "tap",
  "thiserror",
  "tokio",
  "tracing",
