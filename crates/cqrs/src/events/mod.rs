@@ -10,8 +10,8 @@ pub struct FragmentCreatedEvent {
     fragment_id: Id,
     user_id: Id,
     content: String,
-    timestamp: DateTime,
     end: bool,
+    timestamp: DateTime,
 }
 
 impl Event for FragmentCreatedEvent {
@@ -42,10 +42,11 @@ impl Event for FragmentDislikedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentForkedEvent {
     pub fragment_id: Id,
-    pub parent_fragment_id: Id,
     pub user_id: Id,
-    pub timestamp: DateTime,
     pub content: String,
+    pub end: bool,
+    pub parent_fragment_id: Id,
+    pub timestamp: DateTime,
 }
 
 impl Event for FragmentForkedEvent {
@@ -60,7 +61,6 @@ impl Event for FragmentForkedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentPublishedEvent {
     pub fragment_id: Id,
-    pub user_id: Id,
     pub timestamp: DateTime,
 }
 
@@ -78,7 +78,6 @@ impl Event for FragmentPublishedEvent {
 pub struct FragmentUpdatedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
-    pub user_id: Id,
     pub content: String,
     pub end: bool,
 }
@@ -95,7 +94,6 @@ impl Event for FragmentUpdatedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentForkReviewedEvent {
     pub fragment_id: Id,
-    pub reviewer_id: Id,
     pub timestamp: DateTime,
     pub comment: Option<String>,
     pub action: ReviewAction,

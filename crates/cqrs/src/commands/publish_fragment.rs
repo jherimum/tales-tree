@@ -85,7 +85,6 @@ impl From<Fragment> for FragmentPublishedEvent {
     fn from(value: Fragment) -> Self {
         FragmentPublishedEvent {
             fragment_id: *value.id(),
-            user_id: *value.author_id(),
             timestamp: *value.last_modified_at(),
         }
     }

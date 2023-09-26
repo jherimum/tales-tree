@@ -71,7 +71,6 @@ impl Command for UpdateFragmentCommand {
 impl From<Fragment> for FragmentUpdatedEvent {
     fn from(value: Fragment) -> Self {
         FragmentUpdatedEvent {
-            user_id: *value.author_id(),
             fragment_id: *value.id(),
             content: value.content().clone(),
             timestamp: *value.last_modified_at(),

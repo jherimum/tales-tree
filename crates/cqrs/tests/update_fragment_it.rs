@@ -55,7 +55,6 @@ fn test_success_draft_update(pool: PgPool) {
             FragmentUpdatedEventBuilder::default()
                 .fragment_id(*draft.id())
                 .content(NEW_CONTENT)
-                .user_id(*user.id())
                 .timestamp(now.clone())
                 .end(true)
                 .build()

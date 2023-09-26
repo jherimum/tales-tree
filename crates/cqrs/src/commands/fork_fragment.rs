@@ -105,6 +105,7 @@ impl From<Fragment> for FragmentForkedEvent {
             parent_fragment_id: value.parent_id().unwrap(),
             content: value.content().clone(),
             timestamp: *value.created_at(),
+            end: *value.end(),
         }
     }
 }

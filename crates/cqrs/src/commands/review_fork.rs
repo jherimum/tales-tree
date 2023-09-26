@@ -99,7 +99,6 @@ impl From<Review> for FragmentForkReviewedEvent {
     fn from(value: Review) -> Self {
         FragmentForkReviewedEvent {
             fragment_id: *value.fragment_id(),
-            reviewer_id: *value.reviewer_id(),
             action: *value.action(),
             comment: value.comment().clone(),
             timestamp: *value.created_at(),
