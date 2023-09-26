@@ -1,21 +1,9 @@
-use std::fmt::Debug;
-
 use commons::{events::EventType, id::Id, DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::fmt::Debug;
 use storage::model::review::ReviewAction;
-
-pub trait Event:
-    Serialize + DeserializeOwned + Debug + Clone + PartialEq + Eq + Send + Sync
-{
-    fn event_type(&self) -> EventType;
-    fn data(&self) -> Self {
-        self.clone()
-    }
-
-    fn timestamp(&self) -> DateTime;
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentCreatedEvent {
@@ -168,14 +156,13 @@ impl Event for UserUnfollowedEvent {
     }
 }
 
-// impl<E: Event> From<E> for DbEvent {
-//     fn from(value: E) -> Self {
-//         // DbEvent {
-//         //     id: Id::new(),
-//         //     event_type: value.event_type(),
-//         //     event_data: EventData(serde_json::to_value(value.clone()).unwrap()),
-//         //     timestamp: value.timestamp(),
-//         // }
-//         todo!()
-//     }
-// }
+pub trait Event:
+    Serialize + DeserializeOwned + Debug + Clone + PartialEq + Eq + Send + Sync
+{
+    fn event_type(&self) -> EventType;
+    fn data(&self) -> Self {
+        self.clone()
+    }
+
+    fn timestamp(&self) -> DateTime;
+}

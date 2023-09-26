@@ -20,7 +20,14 @@ use commons::{
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
 use std::{fmt::Debug, sync::Arc};
-use storage::{active::task::ActiveTask, model::task::TaskBuilder, StorageError};
+use storage::{
+    active::{event::ActiveEvent, task::ActiveTask},
+    model::{
+        event::{DbEvent, DbEventBuilder, EventData},
+        task::TaskBuilder,
+    },
+    StorageError,
+};
 use tap::TapFallible;
 
 use crate::events::Event;
@@ -184,8 +191,13 @@ impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
             return Err(CommandBusError::ActorNotSupported(self.actor.clone()));
         };
 
-        let mut ctx =
-            CommandHandlerContext::new(&self.pool, &self.actor, self.clock, self.ids).await?;
+        let mut ctx = CommandHandlerContext::new(
+            &self.pool,
+            &self.actor,
+            self.clock.clone(),
+            self.ids.clone(),
+        )
+        .await?;
         let result = self
             .command
             .handle(&mut ctx)
@@ -196,12 +208,7 @@ impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
         match result {
             Ok(result) => {
                 if result.is_some() {
-                    todo!("save event");
-                    // DbEvent::from(event.clone())
-                    //     .save(ctx.tx().as_mut())
-                    //     .await
-                    //     .tap_err(|e| tracing::error!("Failed to save event:{e}"))
-                    //     .tap_ok(|e| tracing::info!("Event [{e:?}] saved successfully."))?;
+                    self.save_event(&mut ctx, result.unwrap()).await?;
                 }
                 ctx.tx()
                     .as_mut()
@@ -219,6 +226,22 @@ impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
                 Err(e)
             }
         }
+    }
+
+    async fn save_event<'ctx>(
+        &self,
+        ctx: &mut CommandHandlerContext<'ctx>,
+        event: impl Event,
+    ) -> Result<DbEvent, StorageError> {
+        DbEventBuilder::default()
+            .id(ctx.ids().new_id())
+            .timestamp(event.timestamp())
+            .event_type(event.event_type())
+            .event_data(EventData::from(event))
+            .build()
+            .unwrap()
+            .save(ctx.tx().as_mut())
+            .await
     }
 }
 
@@ -272,6 +295,7 @@ pub trait Command {
     type Event: Event;
 
     fn command_type(&self) -> CommandType;
+
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,

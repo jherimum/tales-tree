@@ -1,6 +1,7 @@
 use commons::{events::EventType, id::Id, DateTime};
+use derive_builder::Builder;
 use derive_getters::Getters;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use sqlx::{FromRow, Type};
 
@@ -16,7 +17,13 @@ impl EventData {
     }
 }
 
-#[derive(Debug, Clone, FromRow, Getters)]
+impl<S: Serialize> From<S> for EventData {
+    fn from(value: S) -> Self {
+        Self(serde_json::to_value(value).unwrap())
+    }
+}
+
+#[derive(Debug, Clone, FromRow, Getters, Builder)]
 pub struct DbEvent {
     id: Id,
     event_type: EventType,
