@@ -1,6 +1,10 @@
 use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::UserFollowedEvent;
-use commons::{actor::Actor, commands::CommandType, id::Id};
+use commons::{
+    actor::{Actor, ActorTrait},
+    commands::CommandType,
+    id::Id,
+};
 use storage::{
     active::follow::ActiveFollow,
     model::follow::{Follow, FollowBuilder},
@@ -20,9 +24,9 @@ impl Command for FollowUserCommand {
         CommandType::FollowUser
     }
 
-    async fn handle(
+    async fn handle<A: commons::actor::ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
         &self,
-        ctx: &mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext<A>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let actual_follow = Follow::find(ctx.pool(), &user, &self.followee_user_id)
@@ -44,8 +48,9 @@ impl Command for FollowUserCommand {
             .map(|f| Some(f.into()))?)
     }
 
-    fn supports(&self, actor: &Actor) -> bool {
-        actor.is_user()
+    fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
+        //actor.is_user()
+        todo!()
     }
 }
 

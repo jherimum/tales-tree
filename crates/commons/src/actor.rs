@@ -1,6 +1,13 @@
+use std::fmt::{Debug, Display};
+
 use sqlx::Type;
 
 use crate::id::Id;
+
+pub trait ActorTrait: Debug {
+    fn id(&self) -> Option<Id>;
+    fn actor_type(&self) -> ActorType;
+}
 
 #[derive(Debug, Clone, Type)]
 #[sqlx(type_name = "actor_type", rename_all = "snake_case")]

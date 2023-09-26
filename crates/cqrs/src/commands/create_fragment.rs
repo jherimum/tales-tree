@@ -1,6 +1,10 @@
 use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
-use commons::{actor::Actor, commands::CommandType, id::Id};
+use commons::{
+    actor::{Actor, ActorTrait},
+    commands::CommandType,
+    id::Id,
+};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
@@ -27,9 +31,9 @@ impl Command for CreateFragmentCommand {
     fn command_type(&self) -> CommandType {
         CommandType::CreateFragment
     }
-    async fn handle(
+    async fn handle<A: ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
         &self,
-        ctx: &mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext<A>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
@@ -49,8 +53,9 @@ impl Command for CreateFragmentCommand {
             .tap_err(|e| tracing::error!("Failed to save fragment:{e}"))?)
     }
 
-    fn supports(&self, actor: &Actor) -> bool {
-        actor.is_user()
+    fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
+        //actor.is_user()
+        todo!()
     }
 }
 

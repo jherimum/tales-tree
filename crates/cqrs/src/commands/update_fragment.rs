@@ -33,9 +33,9 @@ impl Command for UpdateFragmentCommand {
         CommandType::UpdateFragment
     }
 
-    async fn handle(
+    async fn handle<A: commons::actor::ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
         &self,
-        ctx: &mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext<A>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
 
@@ -63,8 +63,9 @@ impl Command for UpdateFragmentCommand {
             })?)
     }
 
-    fn supports(&self, actor: &Actor) -> bool {
-        actor.is_user()
+    fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
+        //actor.is_user()
+        todo!()
     }
 }
 

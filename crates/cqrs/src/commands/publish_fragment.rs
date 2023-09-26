@@ -34,13 +34,14 @@ impl Command for PublishFragmentCommand {
         CommandType::PublishFragment
     }
 
-    fn supports(&self, actor: &Actor) -> bool {
-        actor.is_user()
+    fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
+        //actor.is_user()
+        todo!()
     }
 
-    async fn handle(
+    async fn handle<A: commons::actor::ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
         &self,
-        ctx: &mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext<A>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
 

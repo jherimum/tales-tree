@@ -1,7 +1,11 @@
 use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::FragmentForkedEvent;
 use chrono::Utc;
-use commons::{actor::Actor, commands::CommandType, id::Id};
+use commons::{
+    actor::{Actor, ActorTrait},
+    commands::CommandType,
+    id::Id,
+};
 use storage::{
     active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentBuilder, FragmentState},
@@ -36,9 +40,9 @@ impl Command for ForkFragmentCommand {
         CommandType::ForkFragment
     }
 
-    async fn handle(
+    async fn handle<A: commons::actor::ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
         &self,
-        ctx: &mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext<A>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let parent_frag = Fragment::find(ctx.pool(), &self.parent_fragment_id)
@@ -92,8 +96,9 @@ impl Command for ForkFragmentCommand {
             .tap_err(|e| tracing::error!("Failed to save fragment: {e}"))?)
     }
 
-    fn supports(&self, actor: &Actor) -> bool {
-        actor.is_user()
+    fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
+        //actor.is_user()
+        todo!()
     }
 }
 

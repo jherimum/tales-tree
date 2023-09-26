@@ -1,7 +1,11 @@
 use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::FragmentDislikedEvent;
 use chrono::Utc;
-use commons::{actor::Actor, commands::CommandType, id::Id};
+use commons::{
+    actor::{Actor, ActorTrait},
+    commands::CommandType,
+    id::Id,
+};
 use storage::{
     active::{fragment::ActiveFragment, like::ActiveLike},
     model::{fragment::Fragment, like::Like},
@@ -30,9 +34,9 @@ impl Command for DislikeFragmentCommand {
         CommandType::LikeFragment
     }
 
-    async fn handle(
+    async fn handle<A: ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
         &self,
-        ctx: &mut CommandHandlerContext,
+        ctx: &mut CommandHandlerContext<A>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let frag = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
             DislikeFragmentCommandError::FragmentNotFound(self.fragment_id),
@@ -59,7 +63,8 @@ impl Command for DislikeFragmentCommand {
         }
     }
 
-    fn supports(&self, actor: &Actor) -> bool {
-        actor.is_user()
+    fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
+        //actor.is_user()
+        todo!()
     }
 }

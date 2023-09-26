@@ -10,7 +10,7 @@ pub mod unfollow_user;
 pub mod update_fragment;
 
 use commons::{
-    actor::Actor,
+    actor::ActorTrait,
     commands::CommandType,
     id::{Id, IdGenerator},
     time::{Clock, DateTime},
@@ -64,7 +64,7 @@ pub enum CommandBusError {
     Storage(#[from] StorageError),
 
     #[error("Actor type forbidden")]
-    ActorNotSupported(Actor),
+    ActorNotSupported,
 
     #[error(transparent)]
     Tx(#[from] sqlx::Error),
@@ -75,22 +75,25 @@ pub enum CommandBusError {
 
 #[async_trait::async_trait]
 pub trait CommandBus {
-    async fn dispatch<C>(
+    async fn dispatch<C, A>(
         &self,
-        actor: &Actor,
+        actor: A,
         command: C,
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
-        C: Command + Debug + Serialize + Send + Sync;
+        C: Command + Debug + Serialize + Send + Sync,
+        A: ActorTrait + Debug + Clone + Send + Sync;
 
-    async fn async_execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    async fn async_execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
-        C: Command + 'static + Send + Sync + Debug;
+        C: Command + 'static + Send + Sync + Debug,
+        A: ActorTrait + Debug + Clone + Send + Sync + 'static;
 
-    async fn execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    async fn execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
-        C: Command + Send + Sync + Debug;
+        C: Command + Send + Sync + Debug,
+        A: ActorTrait + Debug + Clone + Send + Sync;
 }
 
 #[derive(Clone)]
@@ -108,25 +111,26 @@ impl SimpleCommandBus {
 
 #[async_trait::async_trait]
 impl CommandBus for SimpleCommandBus {
-    async fn dispatch<C>(
+    async fn dispatch<C, A>(
         &self,
-        actor: &Actor,
+        actor: A,
         command: C,
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
         C: Command + Debug + Serialize + Send + Sync,
+        A: ActorTrait + Clone + Send + Sync + Debug,
     {
-        if !command.supports(actor) {
+        if !command.supports(&actor) {
             tracing::error!("Actor [{actor:?}] is not allowed to execute command [{command:?}]");
-            return Err(CommandBusError::ActorNotSupported(actor.clone()));
+            return Err(CommandBusError::ActorNotSupported);
         };
 
         Ok(TaskBuilder::default()
             .id(Id::new())
             .command_type(command.command_type())
             .commnad_data(command.into())
-            .actor_type(actor.into())
+            .actor_type(actor.actor_type())
             .actor_id(actor.id())
             .scheduled_at(schedule_to.unwrap_or(DateTime::now()))
             .build()
@@ -136,27 +140,27 @@ impl CommandBus for SimpleCommandBus {
             .map(|t| *t.id())?)
     }
 
-    async fn async_execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    async fn async_execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
         C: Command + 'static + Send + Sync + Debug,
+        A: ActorTrait + Debug + Clone + Send + Sync + 'static,
     {
-        tokio::spawn(
-            InnerExecutor {
-                pool: self.pool.clone(),
-                actor: actor.clone(),
-                command,
-                clock: self.clock.clone(),
-                ids: self.ids.clone(),
-            }
-            .execute(),
+        let executor = InnerExecutor::new(
+            self.pool.clone(),
+            actor.clone(),
+            command,
+            self.clock.clone(),
+            self.ids.clone(),
         );
+        tokio::spawn(executor.execute());
 
         Ok(())
     }
 
-    async fn execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
+    async fn execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
         C: Command + Send + Sync + Debug,
+        A: ActorTrait + Debug + Clone + Send + Sync,
     {
         InnerExecutor {
             pool: self.pool.clone(),
@@ -170,15 +174,35 @@ impl CommandBus for SimpleCommandBus {
     }
 }
 
-struct InnerExecutor<C> {
+struct InnerExecutor<C, A> {
     pool: PgPool,
-    actor: Actor,
+    actor: A,
     command: C,
     clock: Arc<dyn Clock>,
     ids: Arc<dyn IdGenerator>,
 }
 
-impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
+impl<C, A> InnerExecutor<C, A>
+where
+    C: Command + Debug + Send + Sync,
+    A: ActorTrait + Debug + Clone + Send + Sync,
+{
+    pub fn new(
+        pool: PgPool,
+        actor: A,
+        command: C,
+        clock: Arc<dyn Clock>,
+        ids: Arc<dyn IdGenerator>,
+    ) -> Self {
+        Self {
+            pool,
+            actor,
+            command,
+            clock,
+            ids,
+        }
+    }
+
     pub async fn execute(self) -> Result<(), CommandBusError> {
         if !self.command.supports(&self.actor) {
             tracing::error!(
@@ -186,14 +210,15 @@ impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
                 self.actor,
                 self.command.command_type()
             );
-            return Err(CommandBusError::ActorNotSupported(self.actor.clone()));
+            let a = Box::new(self.actor.clone());
+            return Err(CommandBusError::ActorNotSupported);
         };
 
         let mut ctx = CommandHandlerContext::new(
             &self.pool,
             &self.actor,
-            self.clock.clone(),
-            self.ids.clone(),
+            self.clock.as_ref(),
+            self.ids.as_ref(),
         )
         .await?;
         let result = self
@@ -228,7 +253,7 @@ impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
 
     async fn save_event<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<'ctx>,
+        ctx: &mut CommandHandlerContext<'ctx, A>,
         event: impl Event,
     ) -> Result<DbEvent, StorageError> {
         DbEventBuilder::default()
@@ -243,20 +268,20 @@ impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
     }
 }
 
-pub struct CommandHandlerContext<'ctx> {
+pub struct CommandHandlerContext<'ctx, A> {
     pool: PgPool,
-    actor: Actor,
+    actor: &'ctx A,
     tx: Transaction<'ctx, Postgres>,
-    clock: Arc<dyn Clock>,
-    ids: Arc<dyn IdGenerator>,
+    clock: &'ctx dyn Clock,
+    ids: &'ctx dyn IdGenerator,
 }
 
-impl<'ctx> CommandHandlerContext<'ctx> {
+impl<'ctx, A> CommandHandlerContext<'ctx, A> {
     pub fn pool(&self) -> &PgPool {
         &self.pool
     }
 
-    pub fn actor(&self) -> &Actor {
+    pub fn actor(&self) -> &A {
         &self.actor
     }
 
@@ -265,22 +290,25 @@ impl<'ctx> CommandHandlerContext<'ctx> {
     }
 
     pub fn clock(&self) -> &dyn Clock {
-        self.clock.as_ref()
+        self.clock
     }
 
     pub fn ids(&self) -> &dyn IdGenerator {
-        self.ids.as_ref()
+        self.ids
     }
 
     pub async fn new(
         pool: &PgPool,
-        actor: &Actor,
-        clock: Arc<dyn Clock>,
-        ids: Arc<dyn IdGenerator>,
-    ) -> Result<CommandHandlerContext<'ctx>, CommandBusError> {
+        actor: &'ctx A,
+        clock: &'ctx dyn Clock,
+        ids: &'ctx dyn IdGenerator,
+    ) -> Result<CommandHandlerContext<'ctx, A>, CommandBusError>
+    where
+        A: ActorTrait,
+    {
         Ok(Self {
             pool: pool.clone(),
-            actor: actor.clone(),
+            actor,
             tx: pool.begin().await.map_err(CommandBusError::from)?,
             clock,
             ids,
@@ -294,10 +322,14 @@ pub trait Command {
 
     fn command_type(&self) -> CommandType;
 
-    async fn handle(
+    async fn handle<A>(
         &self,
-        ctx: &mut CommandHandlerContext,
-    ) -> Result<Option<Self::Event>, CommandBusError>;
+        ctx: &mut CommandHandlerContext<A>,
+    ) -> Result<Option<Self::Event>, CommandBusError>
+    where
+        A: ActorTrait + Debug + Clone + Send + Sync;
 
-    fn supports(&self, actor: &Actor) -> bool;
+    fn supports<A>(&self, actor: &A) -> bool
+    where
+        A: ActorTrait;
 }
