@@ -5,7 +5,7 @@ use crate::{
 };
 use ::commons::id::Id;
 use all::{
-    commands::{create_fragment::CreateFragmentCommandBuilder, CommandHandler},
+    commands::{create_fragment::CreateFragmentCommandBuilder, Command},
     events::FragmentCreatedEventBuilder,
 };
 use chrono::Utc;

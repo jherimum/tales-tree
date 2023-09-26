@@ -1,15 +1,9 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::FragmentUpdatedEvent;
 use commons::{actor::Actor, commands::CommandType, id::Id};
 use derive_getters::Getters;
 use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
 use tap::TapFallible;
-
-impl Command for UpdateFragmentCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::UpdateFragment
-    }
-}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize, Getters)]
 #[builder(setter(into))]
@@ -31,8 +25,12 @@ pub enum UpdateFragmentCommandError {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for UpdateFragmentCommand {
+impl Command for UpdateFragmentCommand {
     type Event = FragmentUpdatedEvent;
+
+    fn command_type(&self) -> CommandType {
+        CommandType::UpdateFragment
+    }
 
     async fn handle(
         &self,

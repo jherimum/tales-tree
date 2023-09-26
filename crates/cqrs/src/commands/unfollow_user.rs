@@ -1,15 +1,9 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::UserUnfollowedEvent;
 
 use commons::{actor::Actor, commands::CommandType, id::Id};
 use storage::{active::follow::ActiveFollow, model::follow::Follow};
 use tap::TapFallible;
-
-impl Command for UnfollowUserCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::UnfollowUser
-    }
-}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct UnfollowUserCommand {
@@ -17,8 +11,12 @@ pub struct UnfollowUserCommand {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for UnfollowUserCommand {
+impl Command for UnfollowUserCommand {
     type Event = UserUnfollowedEvent;
+
+    fn command_type(&self) -> CommandType {
+        CommandType::UnfollowUser
+    }
 
     async fn handle(
         &self,

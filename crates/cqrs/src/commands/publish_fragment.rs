@@ -1,4 +1,4 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::FragmentPublishedEvent;
 use anyhow::Context;
 use chrono::Utc;
@@ -8,12 +8,6 @@ use storage::{
     model::fragment::{Fragment, FragmentState},
 };
 use tap::TapFallible;
-
-impl Command for PublishFragmentCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::PublishFragment
-    }
-}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct PublishFragmentCommand {
@@ -33,8 +27,12 @@ pub enum PublishFragmentCommandError {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for PublishFragmentCommand {
+impl Command for PublishFragmentCommand {
     type Event = FragmentPublishedEvent;
+
+    fn command_type(&self) -> CommandType {
+        CommandType::PublishFragment
+    }
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()

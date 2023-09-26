@@ -1,4 +1,4 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::UserFollowedEvent;
 use commons::{actor::Actor, commands::CommandType, id::Id};
 use storage::{
@@ -7,20 +7,18 @@ use storage::{
 };
 use tap::TapFallible;
 
-impl Command for FollowUserCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::FollowUser
-    }
-}
-
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct FollowUserCommand {
     followee_user_id: Id,
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for FollowUserCommand {
+impl Command for FollowUserCommand {
     type Event = UserFollowedEvent;
+
+    fn command_type(&self) -> CommandType {
+        CommandType::FollowUser
+    }
 
     async fn handle(
         &self,

@@ -77,15 +77,15 @@ pub trait CommandBus {
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
-        C: CommandHandler + Debug + Serialize + Command + Send + Sync;
+        C: Command + Debug + Serialize + Send + Sync;
 
     async fn async_execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + 'static + Send + Sync + Debug + Command;
+        C: Command + 'static + Send + Sync + Debug;
 
     async fn execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + Send + Sync + Debug + Command;
+        C: Command + Send + Sync + Debug;
 }
 
 #[derive(Clone)]
@@ -110,7 +110,7 @@ impl CommandBus for SimpleCommandBus {
         schedule_to: Option<DateTime>,
     ) -> Result<Id, CommandBusError>
     where
-        C: CommandHandler + Debug + Serialize + Command + Send + Sync,
+        C: Command + Debug + Serialize + Send + Sync,
     {
         if !command.supports(actor) {
             tracing::error!("Actor [{actor:?}] is not allowed to execute command [{command:?}]");
@@ -133,7 +133,7 @@ impl CommandBus for SimpleCommandBus {
 
     async fn async_execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + 'static + Send + Sync + Debug + Command,
+        C: Command + 'static + Send + Sync + Debug,
     {
         tokio::spawn(
             InnerExecutor {
@@ -151,7 +151,7 @@ impl CommandBus for SimpleCommandBus {
 
     async fn execute<C>(&self, actor: &Actor, command: C) -> Result<(), CommandBusError>
     where
-        C: CommandHandler + Send + Sync + Debug + Command,
+        C: Command + Send + Sync + Debug,
     {
         InnerExecutor {
             pool: self.pool.clone(),
@@ -173,7 +173,7 @@ struct InnerExecutor<C> {
     ids: Arc<dyn IdGenerator>,
 }
 
-impl<C: CommandHandler + Debug + Send + Sync + Command> InnerExecutor<C> {
+impl<C: Command + Debug + Send + Sync> InnerExecutor<C> {
     pub async fn execute(self) -> Result<(), CommandBusError> {
         if !self.command.supports(&self.actor) {
             tracing::error!(
@@ -267,14 +267,11 @@ impl<'ctx> CommandHandlerContext<'ctx> {
     }
 }
 
-pub trait Command {
-    fn command_type(&self) -> CommandType;
-}
-
 #[async_trait::async_trait]
-pub trait CommandHandler {
+pub trait Command {
     type Event: Event;
 
+    fn command_type(&self) -> CommandType;
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,

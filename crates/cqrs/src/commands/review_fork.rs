@@ -1,6 +1,6 @@
 use crate::events::FragmentForkReviewedEvent;
 
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use chrono::Utc;
 use commons::{actor::Actor, commands::CommandType, id::Id};
 use storage::{
@@ -11,12 +11,6 @@ use storage::{
     },
 };
 use tap::TapFallible;
-
-impl Command for ReviewForkCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::ReviewFork
-    }
-}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct ReviewForkCommand {
@@ -36,8 +30,12 @@ pub enum ReviewForkCommandError {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for ReviewForkCommand {
+impl Command for ReviewForkCommand {
     type Event = FragmentForkReviewedEvent;
+
+    fn command_type(&self) -> CommandType {
+        CommandType::ReviewFork
+    }
 
     fn supports(&self, actor: &Actor) -> bool {
         actor.is_user()

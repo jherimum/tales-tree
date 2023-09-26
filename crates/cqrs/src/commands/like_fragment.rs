@@ -1,4 +1,4 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::FragmentLikedEvent;
 use chrono::Utc;
 use commons::{actor::Actor, commands::CommandType, id::Id};
@@ -10,12 +10,6 @@ use storage::{
     },
 };
 use tap::TapFallible;
-
-impl Command for LikeFragmentCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::LikeFragment
-    }
-}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct LikeFragmentCommand {
@@ -32,9 +26,12 @@ pub enum LikeFragmentCommandError {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for LikeFragmentCommand {
+impl Command for LikeFragmentCommand {
     type Event = FragmentLikedEvent;
 
+    fn command_type(&self) -> CommandType {
+        CommandType::LikeFragment
+    }
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,

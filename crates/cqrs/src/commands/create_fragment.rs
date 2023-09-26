@@ -1,4 +1,4 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
 use commons::{actor::Actor, commands::CommandType, id::Id};
 use derive_builder::Builder;
@@ -19,16 +19,13 @@ pub struct CreateFragmentCommand {
     content: String,
 }
 
+#[async_trait::async_trait]
 impl Command for CreateFragmentCommand {
+    type Event = FragmentCreatedEvent;
+
     fn command_type(&self) -> CommandType {
         CommandType::CreateFragment
     }
-}
-
-#[async_trait::async_trait]
-impl CommandHandler for CreateFragmentCommand {
-    type Event = FragmentCreatedEvent;
-
     async fn handle(
         &self,
         ctx: &mut CommandHandlerContext,

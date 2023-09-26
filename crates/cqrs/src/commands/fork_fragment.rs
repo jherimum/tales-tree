@@ -1,4 +1,4 @@
-use super::{Command, CommandBusError, CommandHandler, CommandHandlerContext};
+use super::{Command, CommandBusError, CommandHandlerContext};
 use crate::events::FragmentForkedEvent;
 use chrono::Utc;
 use commons::{actor::Actor, commands::CommandType, id::Id};
@@ -7,12 +7,6 @@ use storage::{
     model::fragment::{Fragment, FragmentBuilder, FragmentState},
 };
 use tap::TapFallible;
-
-impl Command for ForkFragmentCommand {
-    fn command_type(&self) -> CommandType {
-        CommandType::ForkFragment
-    }
-}
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 pub struct ForkFragmentCommand {
@@ -34,8 +28,12 @@ pub enum ForkFragmentCommandError {
 }
 
 #[async_trait::async_trait]
-impl CommandHandler for ForkFragmentCommand {
+impl Command for ForkFragmentCommand {
     type Event = FragmentForkedEvent;
+
+    fn command_type(&self) -> CommandType {
+        CommandType::ForkFragment
+    }
 
     async fn handle(
         &self,

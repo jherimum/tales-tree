@@ -13,7 +13,7 @@ use crate::{
 use all::{
     commands::{
         update_fragment::{UpdateFragmentCommandBuilder, UpdateFragmentCommandError},
-        CommandBusError, CommandHandler,
+        Command, CommandBusError,
     },
     events::FragmentUpdatedEventBuilder,
 };
