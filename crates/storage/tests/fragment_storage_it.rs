@@ -1,6 +1,6 @@
 use chrono::Utc;
 use commons::id::Id;
-use sqlx::{pool, PgPool};
+use sqlx::PgPool;
 use storage::{
     active::{fragment::ActiveFragment, user::ActiveUser},
     model::{
@@ -61,8 +61,8 @@ async fn find(pool: PgPool) {
         .await
         .unwrap();
 
-    assert!(Fragment::find(&pool, &Id::new()).await.unwrap().is_none());
-    assert!(Fragment::find(&pool, frag.id()).await.unwrap().is_some());
+    assert_eq!(Fragment::find(&pool, &Id::new()).await.unwrap(), None);
+    assert_eq!(Fragment::find(&pool, frag.id()).await.unwrap(), Some(frag));
 }
 
 #[sqlx::test]
@@ -100,7 +100,7 @@ async fn get_parent(pool: PgPool) {
         .await
         .unwrap();
 
-    assert!(parent.get_parent(&pool).await.unwrap().is_none());
+    assert_eq!(parent.get_parent(&pool).await.unwrap(), None);
     assert_eq!(frag.get_parent(&pool).await.unwrap().unwrap(), parent);
 }
 
@@ -173,8 +173,8 @@ fn update(pool: PgPool) {
         .unwrap();
 
     assert_eq!(
-        frag,
-        Fragment::find(&pool, frag.id()).await.unwrap().unwrap()
+        Fragment::find(&pool, frag.id()).await.unwrap(),
+        Some(frag.clone())
     );
 
     let update_frag = frag
@@ -185,12 +185,12 @@ fn update(pool: PgPool) {
         .unwrap();
 
     assert_ne!(
-        frag,
-        Fragment::find(&pool, frag.id()).await.unwrap().unwrap()
+        Fragment::find(&pool, frag.id()).await.unwrap(),
+        Some(frag.clone())
     );
 
     assert_eq!(
-        update_frag,
-        Fragment::find(&pool, frag.id()).await.unwrap().unwrap()
+        Some(update_frag),
+        Fragment::find(&pool, frag.id()).await.unwrap()
     );
 }
