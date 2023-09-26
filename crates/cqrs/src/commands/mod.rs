@@ -9,13 +9,11 @@ pub mod review_fork;
 pub mod unfollow_user;
 pub mod update_fragment;
 
-use chrono::Utc;
 use commons::{
     actor::Actor,
-    clock::Clock,
+    clock::{Clock, DateTime},
     commands::CommandType,
     id::{Id, IdGenerator},
-    DateTime,
 };
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
@@ -130,7 +128,7 @@ impl CommandBus for SimpleCommandBus {
             .commnad_data(command.into())
             .actor_type(actor.into())
             .actor_id(actor.id())
-            .scheduled_at(schedule_to.unwrap_or(Utc::now().naive_utc()))
+            .scheduled_at(schedule_to.unwrap_or(DateTime::now()))
             .build()
             .map_err(anyhow::Error::from)?
             .save(&self.pool)

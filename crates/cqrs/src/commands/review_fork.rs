@@ -78,7 +78,7 @@ impl Command for ReviewForkCommand {
             .fragment_id(self.fragment_id)
             .reviewer_id(user)
             .comment(self.comment.clone())
-            .created_at(Utc::now().naive_utc())
+            .created_at(ctx.clock().now())
             .action(self.action)
             .build()
             .map_err(anyhow::Error::from)?
@@ -87,7 +87,7 @@ impl Command for ReviewForkCommand {
             .tap_err(|e| tracing::error!("Failed to save review: {e}"))?;
 
         frag.set_state(FragmentState::from(self.action))
-            .set_last_modified_at(Utc::now().naive_utc())
+            .set_last_modified_at(ctx.clock().now())
             .update(ctx.tx().as_mut())
             .await?;
 

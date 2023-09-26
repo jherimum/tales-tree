@@ -1,4 +1,4 @@
-use commons::{id::Id, DateTime};
+use commons::{clock::DateTime, id::Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use sqlx::FromRow;

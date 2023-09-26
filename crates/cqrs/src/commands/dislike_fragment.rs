@@ -51,7 +51,7 @@ impl Command for DislikeFragmentCommand {
                 true => Ok(Some(FragmentDislikedEvent {
                     fragment_id: self.fragment_id,
                     user_id: ctx.actor().id().unwrap(),
-                    timestamp: Utc::now().naive_utc(),
+                    timestamp: ctx.clock().now(),
                 })),
                 false => Ok(None),
             },

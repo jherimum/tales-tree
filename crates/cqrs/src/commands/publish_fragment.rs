@@ -73,7 +73,7 @@ impl Command for PublishFragmentCommand {
 
         Ok(fragment
             .set_state(state)
-            .set_last_modified_at(Utc::now().naive_utc())
+            .set_last_modified_at(ctx.clock().now())
             .update(ctx.tx().as_mut())
             .await
             .map(|f| Some(f.into()))

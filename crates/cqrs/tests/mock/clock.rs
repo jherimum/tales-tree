@@ -1,4 +1,4 @@
-use commons::{clock::MockClock, DateTime};
+use commons::clock::{DateTime, MockClock};
 
 pub fn fixed_clock(time: DateTime) -> MockClock {
     let mut clock = MockClock::default();

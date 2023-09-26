@@ -1,5 +1,6 @@
-use crate::DateTime;
+use chrono::{NaiveDateTime, Utc};
 use mockall::automock;
+use serde::{Deserialize, Serialize};
 
 #[automock]
 pub trait Clock: Send + Sync {
@@ -10,6 +11,17 @@ pub struct SystemClock;
 
 impl Clock for SystemClock {
     fn now(&self) -> DateTime {
-        chrono::Utc::now().naive_utc()
+        DateTime::now()
+    }
+}
+
+#[derive(Debug, Clone, Copy, sqlx::Type, PartialEq, Eq, Serialize, Deserialize)]
+#[sqlx(transparent)]
+#[serde(transparent)]
+pub struct DateTime(NaiveDateTime);
+
+impl DateTime {
+    pub fn now() -> Self {
+        Self(Utc::now().naive_utc())
     }
 }

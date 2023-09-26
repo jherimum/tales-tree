@@ -1,5 +1,5 @@
 use chrono::Utc;
-use commons::id::Id;
+use commons::{clock::DateTime, id::Id};
 use sqlx::PgPool;
 use storage::{
     active::fragment::ActiveFragment,
@@ -17,8 +17,8 @@ pub async fn create_draft(pool: &PgPool, user: &User, content: &str, end: bool) 
         .parent_id(None)
         .path(Path::default())
         .author_id(*user.id())
-        .created_at(Utc::now().naive_utc())
-        .last_modified_at(Utc::now().naive_utc())
+        .created_at(DateTime::now())
+        .last_modified_at(DateTime::now())
         .end(end)
         .build()
         .unwrap()
@@ -36,8 +36,8 @@ pub async fn create_published(pool: &PgPool, user: &User, content: &str, end: bo
         .path(Path::default())
         .end(end)
         .author_id(*user.id())
-        .created_at(Utc::now().naive_utc())
-        .last_modified_at(Utc::now().naive_utc())
+        .created_at(DateTime::now())
+        .last_modified_at(DateTime::now())
         .build()
         .unwrap()
         .save(pool)

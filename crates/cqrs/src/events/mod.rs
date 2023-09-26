@@ -1,4 +1,4 @@
-use commons::{events::EventType, id::Id, DateTime};
+use commons::{clock::DateTime, events::EventType, id::Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};

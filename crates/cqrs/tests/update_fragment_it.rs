@@ -10,17 +10,16 @@ use crate::{
     },
     mock::{clock::fixed_clock, ids::fixed_id},
 };
-use all::{
+use cqrs::{
     commands::{
         update_fragment::{UpdateFragmentCommandBuilder, UpdateFragmentCommandError},
         Command, CommandBusError,
     },
     events::FragmentUpdatedEventBuilder,
 };
-use chrono::Utc;
 
 use ::commons::{
-    clock::MockClock,
+    clock::{DateTime, MockClock},
     id::{Id, MockIdGenerator},
 };
 use sqlx::PgPool;
@@ -44,7 +43,7 @@ fn test_success_draft_update(pool: PgPool) {
         .build()
         .unwrap();
 
-    let now = Utc::now().naive_utc();
+    let now = DateTime::now();
     let mut ctx = create_context(&pool, &user, fixed_clock(now), fixed_id(Id::new())).await;
 
     let result = command.handle(&mut ctx).await.unwrap();

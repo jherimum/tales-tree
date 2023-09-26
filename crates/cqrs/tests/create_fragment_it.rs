@@ -3,12 +3,11 @@ use crate::{
     fixtures::user::create_user,
     mock::{clock::fixed_clock, ids::fixed_id},
 };
-use ::commons::id::Id;
-use all::{
+use ::commons::{clock::DateTime, id::Id};
+use cqrs::{
     commands::{create_fragment::CreateFragmentCommandBuilder, Command},
     events::FragmentCreatedEventBuilder,
 };
-use chrono::Utc;
 use sqlx::PgPool;
 use storage::{
     active::fragment::ActiveFragment,
@@ -21,7 +20,7 @@ mod mock;
 
 #[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_handle_success(pool: PgPool) {
-    let created_at = Utc::now().naive_utc();
+    let created_at = DateTime::now();
     let clock = fixed_clock(created_at);
 
     let event_id = Id::new();

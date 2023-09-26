@@ -1,5 +1,5 @@
-use all::commands::CommandHandlerContext;
 use commons::{actor::Actor, clock::Clock, id::IdGenerator};
+use cqrs::commands::CommandHandlerContext;
 use sqlx::PgPool;
 use std::sync::Arc;
 use storage::model::user::User;

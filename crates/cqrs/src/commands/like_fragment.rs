@@ -54,7 +54,7 @@ impl Command for LikeFragmentCommand {
             None => Ok(LikeBuilder::default()
                 .fragment_id(*frag.id())
                 .user_id(user)
-                .created_at(Utc::now().naive_utc())
+                .created_at(ctx.clock().now())
                 .build()
                 .tap_err(|e| tracing::error!("Failed to build like: {}", e))
                 .map_err(anyhow::Error::from)?
