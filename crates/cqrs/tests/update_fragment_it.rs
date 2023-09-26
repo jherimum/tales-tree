@@ -19,8 +19,8 @@ use cqrs::{
 };
 
 use ::commons::{
-    clock::{DateTime, MockClock},
     id::{Id, MockIdGenerator},
+    time::{DateTime, MockClock},
 };
 use sqlx::PgPool;
 use storage::{

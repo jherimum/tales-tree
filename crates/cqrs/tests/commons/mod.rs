@@ -1,4 +1,4 @@
-use commons::{actor::Actor, clock::Clock, id::IdGenerator};
+use commons::{actor::Actor, id::IdGenerator, time::Clock};
 use cqrs::commands::CommandHandlerContext;
 use sqlx::PgPool;
 use std::sync::Arc;

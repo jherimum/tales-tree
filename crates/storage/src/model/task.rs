@@ -1,5 +1,5 @@
 use ::serde::de::DeserializeOwned;
-use commons::{actor::ActorType, clock::DateTime, commands::CommandType, id::Id};
+use commons::{actor::ActorType, commands::CommandType, id::Id, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::Serialize;

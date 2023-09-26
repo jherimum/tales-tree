@@ -1,6 +1,6 @@
 use super::review::ReviewAction;
 use crate::Entity;
-use commons::{clock::DateTime, id::Id};
+use commons::{id::Id, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use derive_setters::Setters;

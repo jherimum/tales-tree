@@ -1,4 +1,4 @@
-use commons::{clock::DateTime, id::Id};
+use commons::{id::Id, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};

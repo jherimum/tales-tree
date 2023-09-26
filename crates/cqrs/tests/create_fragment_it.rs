@@ -3,7 +3,7 @@ use crate::{
     fixtures::user::create_user,
     mock::{clock::fixed_clock, ids::fixed_id},
 };
-use ::commons::{clock::DateTime, id::Id};
+use ::commons::{id::Id, time::DateTime};
 use cqrs::{
     commands::{create_fragment::CreateFragmentCommandBuilder, Command},
     events::FragmentCreatedEventBuilder,

@@ -11,9 +11,9 @@ pub mod update_fragment;
 
 use commons::{
     actor::Actor,
-    clock::{Clock, DateTime},
     commands::CommandType,
     id::{Id, IdGenerator},
+    time::{Clock, DateTime},
 };
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
