@@ -1,17 +1,32 @@
 use chrono::Utc;
 use commons::id::Id;
-use sqlx::PgPool;
+use sqlx::{pool, PgPool};
 use storage::{
-    active::fragment::ActiveFragment,
-    model::fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+    active::{fragment::ActiveFragment, user::ActiveUser},
+    model::{
+        fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+        user::{User, UserBuilder},
+    },
 };
+
+async fn create_user(pool: &PgPool) -> User {
+    UserBuilder::default()
+        .id(Id::new())
+        .build()
+        .unwrap()
+        .save(pool)
+        .await
+        .unwrap()
+}
 
 #[sqlx::test]
 async fn save(pool: PgPool) {
+    let user = create_user(&pool).await;
+
     let frag = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
@@ -30,13 +45,15 @@ async fn save(pool: PgPool) {
 
 #[sqlx::test]
 async fn find(pool: PgPool) {
+    let user = create_user(&pool).await;
     let frag = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
+        .end(false)
         .path(Path::default())
         .build()
         .unwrap()
@@ -50,13 +67,15 @@ async fn find(pool: PgPool) {
 
 #[sqlx::test]
 async fn get_parent(pool: PgPool) {
+    let user = create_user(&pool).await;
     let parent = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
+        .end(false)
         .path(Path::default())
         .build()
         .unwrap()
@@ -64,14 +83,16 @@ async fn get_parent(pool: PgPool) {
         .await
         .unwrap();
 
+    let user = create_user(&pool).await;
     let frag = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
         .path(Path::default())
+        .end(false)
         .parent_id(Some(*parent.id()))
         .build()
         .unwrap()
@@ -85,10 +106,12 @@ async fn get_parent(pool: PgPool) {
 
 #[sqlx::test]
 fn get_children(pool: PgPool) {
+    let user = create_user(&pool).await;
+
     let parent = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
@@ -100,10 +123,11 @@ fn get_children(pool: PgPool) {
         .await
         .unwrap();
 
+    let user = create_user(&pool).await;
     let frag = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
@@ -132,10 +156,11 @@ fn get_children(pool: PgPool) {
 
 #[sqlx::test]
 fn update(pool: PgPool) {
+    let user = create_user(&pool).await;
     let frag = FragmentBuilder::default()
         .id(Id::new())
         .content("value".to_string())
-        .author_id(Id::new())
+        .author_id(*user.id())
         .created_at(Utc::now().naive_utc())
         .last_modified_at(Utc::now().naive_utc())
         .state(FragmentState::Draft)
