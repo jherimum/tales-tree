@@ -56,6 +56,8 @@ pub struct Fragment {
     #[setters(skip)]
     path: Path,
 
+    end: bool,
+
     #[setters(skip)]
     created_at: DateTime,
 

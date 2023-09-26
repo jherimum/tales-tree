@@ -17,6 +17,7 @@ pub enum CreateFragmentCommandError {}
 pub struct CreateFragmentCommand {
     fragment_id: Id,
     content: String,
+    end: bool,
 }
 
 #[async_trait::async_trait]
@@ -36,6 +37,7 @@ impl Command for CreateFragmentCommand {
             .author_id(ctx.actor().id().unwrap())
             .content(self.content.clone())
             .state(FragmentState::Draft)
+            .end(self.end)
             .created_at(now)
             .last_modified_at(now)
             .build()

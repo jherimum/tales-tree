@@ -13,6 +13,7 @@ pub struct ForkFragmentCommand {
     fragment_id: Id,
     parent_fragment_id: Id,
     content: String,
+    end: bool,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -61,6 +62,10 @@ impl Command for ForkFragmentCommand {
             );
         }
 
+        if *parent_frag.end() {
+            return Err(ForkFragmentCommandError::Forbidden("Cannot fork an end fragment").into());
+        }
+
         // if !user.is_friend(ctx.pool(), *parent_frag.author_id()).await? {
         //     return Err(ForkFragmentCommandError::Forbidden(
         //         "You must be friend with the fragment author",
@@ -74,6 +79,7 @@ impl Command for ForkFragmentCommand {
             .content(self.content.clone())
             .parent_id(Some(self.parent_fragment_id))
             .state(FragmentState::Draft)
+            .end(self.end)
             .created_at(Utc::now().naive_utc())
             .last_modified_at(Utc::now().naive_utc())
             .path(parent_frag.path().append(self.parent_fragment_id))

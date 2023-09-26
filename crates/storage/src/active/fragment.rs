@@ -34,8 +34,8 @@ impl ActiveFragment for Fragment {
 
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         query_as(r#"
-            INSERT INTO fragments (id, author_id, content, state, parent_id, created_at, last_modified_at, path) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *"#)
+            INSERT INTO fragments (id, author_id, content, state, parent_id, created_at, last_modified_at, path, end) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *"#)
         .bind(self.id())
         .bind(self.author_id())
         .bind(self.content())
@@ -44,6 +44,7 @@ impl ActiveFragment for Fragment {
         .bind(self.created_at())
         .bind(self.last_modified_at())
         .bind(self.path())
+        .bind(self.end())
         .fetch_one(exec).await
         .map_err(Into::into)
     }
@@ -55,13 +56,15 @@ impl ActiveFragment for Fragment {
             SET 
                 content = $2, 
                 state = $3, 
-                last_modified_at = $4
+                last_modified_at = $4,
+                end = $5
             WHERE id = $1 RETURNING *"#,
         )
         .bind(self.id())
         .bind(self.content())
         .bind(self.state())
         .bind(self.last_modified_at())
+        .bind(self.end())
         .fetch_one(exec)
         .await
         .map_err(Into::into)

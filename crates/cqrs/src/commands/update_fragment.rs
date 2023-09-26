@@ -10,6 +10,7 @@ use tap::TapFallible;
 pub struct UpdateFragmentCommand {
     fragment_id: Id,
     content: String,
+    end: bool,
 }
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -53,6 +54,7 @@ impl Command for UpdateFragmentCommand {
         Ok(fragment
             .set_content(self.content.clone())
             .set_last_modified_at(ctx.clock().now())
+            .set_end(self.end)
             .update(ctx.tx().as_mut())
             .await
             .map(|f| Some(f.into()))
