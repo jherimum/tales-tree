@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/all"]
+members = ["crates/cqrs", "crates/storage", "crates/commons"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
