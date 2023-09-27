@@ -44,7 +44,9 @@ fn test_success_draft_update(pool: PgPool) {
         .unwrap();
 
     let now = DateTime::now();
-    let mut ctx = create_context(&pool, &user, fixed_clock(now), fixed_id(Id::new())).await;
+    let clock = fixed_clock(now);
+    let ids = fixed_id(Id::new());
+    let mut ctx = create_context(&pool, &user, &clock, &ids).await;
 
     let result = command.handle(&mut ctx).await.unwrap();
 
@@ -97,13 +99,9 @@ fn test_actor_not_author(pool: PgPool) {
         .build()
         .unwrap();
 
-    let mut ctx = create_context(
-        &pool,
-        &other_user,
-        MockClock::default(),
-        MockIdGenerator::default(),
-    )
-    .await;
+    let clock = MockClock::default();
+    let ids = MockIdGenerator::default();
+    let mut ctx = create_context(&pool, &other_user, &clock, &ids).await;
 
     match command.handle(&mut ctx).await {
         Ok(_) => panic!("Expected Err(CommandBusError) but got Ok(_)"),
@@ -127,13 +125,9 @@ fn test_non_editable_fragment(pool: PgPool) {
         .build()
         .unwrap();
 
-    let mut ctx = create_context(
-        &pool,
-        &author,
-        MockClock::default(),
-        MockIdGenerator::default(),
-    )
-    .await;
+    let clock = MockClock::default();
+    let ids = MockIdGenerator::default();
+    let mut ctx = create_context(&pool, &author, &clock, &ids).await;
 
     match command.handle(&mut ctx).await {
         Ok(_) => panic!("Expected Err(CommandBusError) but got Ok(_)"),
@@ -156,13 +150,9 @@ fn test_fragment_not_found(pool: PgPool) {
         .build()
         .unwrap();
 
-    let mut ctx = create_context(
-        &pool,
-        &user,
-        MockClock::default(),
-        MockIdGenerator::default(),
-    )
-    .await;
+    let clock = MockClock::default();
+    let ids = MockIdGenerator::default();
+    let mut ctx = create_context(&pool, &user, &clock, &ids).await;
 
     match command.handle(&mut ctx).await {
         Ok(_) => panic!("Expected Err(CommandBusError) but got Ok(_)"),

@@ -20,6 +20,7 @@ impl Clock for SystemClock {
 #[serde(transparent)]
 pub struct DateTime(NaiveDateTime);
 
+#[automock]
 impl DateTime {
     pub fn now() -> Self {
         Self(Utc::now().naive_utc())

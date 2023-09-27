@@ -31,9 +31,9 @@ impl Command for CreateFragmentCommand {
     fn command_type(&self) -> CommandType {
         CommandType::CreateFragment
     }
-    async fn handle<A: ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
+    async fn handle(
         &self,
-        ctx: &mut CommandHandlerContext<A>,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
@@ -54,8 +54,7 @@ impl Command for CreateFragmentCommand {
     }
 
     fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        true
     }
 }
 

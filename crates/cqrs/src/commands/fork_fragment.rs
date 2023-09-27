@@ -40,9 +40,9 @@ impl Command for ForkFragmentCommand {
         CommandType::ForkFragment
     }
 
-    async fn handle<A: commons::actor::ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
+    async fn handle(
         &self,
-        ctx: &mut CommandHandlerContext<A>,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let parent_frag = Fragment::find(ctx.pool(), &self.parent_fragment_id)

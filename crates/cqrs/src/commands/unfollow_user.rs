@@ -18,9 +18,9 @@ impl Command for UnfollowUserCommand {
         CommandType::UnfollowUser
     }
 
-    async fn handle<A: commons::actor::ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
+    async fn handle(
         &self,
-        ctx: &mut CommandHandlerContext<A>,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let actual_follow = Follow::find(ctx.pool(), &user, &self.followee_user_id)

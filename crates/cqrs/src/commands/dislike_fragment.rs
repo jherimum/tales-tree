@@ -34,9 +34,9 @@ impl Command for DislikeFragmentCommand {
         CommandType::LikeFragment
     }
 
-    async fn handle<A: ActorTrait + core::fmt::Debug + Clone + Send + Sync>(
+    async fn handle(
         &self,
-        ctx: &mut CommandHandlerContext<A>,
+        ctx: &mut CommandHandlerContext,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let frag = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
             DislikeFragmentCommandError::FragmentNotFound(self.fragment_id),

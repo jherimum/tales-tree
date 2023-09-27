@@ -4,7 +4,7 @@ use sqlx::Type;
 
 use crate::id::Id;
 
-pub trait ActorTrait: Debug {
+pub trait ActorTrait: Debug + Send + Sync {
     fn id(&self) -> Option<Id>;
     fn actor_type(&self) -> ActorType;
 }
