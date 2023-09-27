@@ -1,11 +1,7 @@
-use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
+use crate::command_bus::bus::Context;
+use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentUpdatedEvent;
-use commons::{
-    actor::ActorTrait,
-    commands::CommandType,
-    id::{Id, IdGenerator},
-    time::Clock,
-};
+use commons::{commands::CommandType, id::Id};
 use derive_getters::Getters;
 use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
 use tap::TapFallible;
@@ -38,15 +34,10 @@ impl Command for UpdateFragmentCommand {
         CommandType::UpdateFragment
     }
 
-    async fn handle<A, CL, I>(
+    async fn handle<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<A, CL, I>,
-    ) -> Result<Option<Self::Event>, CommandBusError>
-    where
-        A: ActorTrait,
-        CL: Clock,
-        I: IdGenerator,
-    {
+        ctx: &mut dyn Context<'ctx>,
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
 
         let fragment = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(

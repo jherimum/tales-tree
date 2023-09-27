@@ -1,11 +1,7 @@
-use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
+use crate::command_bus::bus::Context;
+use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::UserFollowedEvent;
-use commons::{
-    actor::ActorTrait,
-    commands::CommandType,
-    id::{Id, IdGenerator},
-    time::Clock,
-};
+use commons::{commands::CommandType, id::Id};
 use storage::{
     active::follow::ActiveFollow,
     model::follow::{Follow, FollowBuilder},
@@ -25,15 +21,10 @@ impl Command for FollowUserCommand {
         CommandType::FollowUser
     }
 
-    async fn handle<A, CL, I>(
+    async fn handle<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<A, CL, I>,
-    ) -> Result<Option<Self::Event>, CommandBusError>
-    where
-        A: ActorTrait,
-        CL: Clock,
-        I: IdGenerator,
-    {
+        ctx: &mut dyn Context<'ctx>,
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let actual_follow = Follow::find(ctx.pool(), &user, &self.followee_user_id)
             .await

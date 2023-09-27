@@ -1,11 +1,7 @@
-use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
+use crate::command_bus::bus::Context;
+use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
-use commons::{
-    actor::ActorTrait,
-    commands::CommandType,
-    id::{Id, IdGenerator},
-    time::Clock,
-};
+use commons::{actor::ActorTrait, commands::CommandType, id::Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
@@ -32,15 +28,10 @@ impl Command for CreateFragmentCommand {
     fn command_type(&self) -> CommandType {
         CommandType::CreateFragment
     }
-    async fn handle<A, CL, I>(
+    async fn handle<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<A, CL, I>,
-    ) -> Result<Option<Self::Event>, CommandBusError>
-    where
-        A: ActorTrait,
-        CL: Clock,
-        I: IdGenerator,
-    {
+        ctx: &mut dyn Context<'ctx>,
+    ) -> Result<Option<Self::Event>, CommandBusError> {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)

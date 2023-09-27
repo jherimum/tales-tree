@@ -5,7 +5,10 @@ use crate::{
 };
 use ::commons::{id::Id, time::DateTime};
 use cqrs::{
-    command_bus::{bus::Command, commands::create_fragment::CreateFragmentCommandBuilder},
+    command_bus::{
+        bus::{Command, Context},
+        commands::create_fragment::CreateFragmentCommandBuilder,
+    },
     events::FragmentCreatedEventBuilder,
 };
 use sqlx::PgPool;

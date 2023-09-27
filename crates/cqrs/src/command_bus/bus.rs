@@ -112,13 +112,13 @@ where
         C: Command,
         A: ActorTrait + Clone + 'static,
     {
-        InnerExecutor {
-            pool: self.pool.clone(),
-            actor: actor,
+        InnerExecutor::new(
+            self.pool.clone(),
+            actor,
             command,
-            clock: self.clock.clone(),
-            ids: self.ids.clone(),
-        }
+            self.clock.clone(),
+            self.ids.clone(),
+        )
         .execute()
         .await
     }
@@ -162,7 +162,7 @@ where
             )));
         };
 
-        let mut ctx = CommandHandlerContext::new(
+        let mut ctx = Ctx::new(
             &self.pool,
             &self.actor,
             self.clock.as_ref(),
@@ -201,7 +201,7 @@ where
 
     async fn save_event<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<'ctx, A, CL, I>,
+        ctx: &mut dyn Context<'ctx>,
         event: impl Event,
     ) -> Result<DbEvent, StorageError> {
         DbEventBuilder::default()
@@ -216,7 +216,46 @@ where
     }
 }
 
-pub struct CommandHandlerContext<'ctx, A, C, I> {
+pub trait Context<'ctx>: Send + Sync {
+    fn pool(&self) -> &PgPool;
+
+    fn actor(&self) -> &dyn ActorTrait;
+
+    fn tx(&mut self) -> &mut Transaction<'ctx, Postgres>;
+
+    fn clock(&self) -> &dyn Clock;
+
+    fn ids(&self) -> &dyn IdGenerator;
+}
+
+impl<'ctx, A, C, I> Context<'ctx> for Ctx<'ctx, A, C, I>
+where
+    A: ActorTrait,
+    C: Clock,
+    I: IdGenerator,
+{
+    fn pool(&self) -> &PgPool {
+        self.pool
+    }
+
+    fn actor(&self) -> &dyn ActorTrait {
+        self.actor
+    }
+
+    fn tx(&mut self) -> &mut Transaction<'ctx, Postgres> {
+        &mut self.tx
+    }
+
+    fn clock(&self) -> &dyn Clock {
+        self.clock
+    }
+
+    fn ids(&self) -> &dyn IdGenerator {
+        self.ids
+    }
+}
+
+pub struct Ctx<'ctx, A, C, I> {
     pool: &'ctx PgPool,
     actor: &'ctx A,
     tx: Transaction<'ctx, Postgres>,
@@ -224,33 +263,13 @@ pub struct CommandHandlerContext<'ctx, A, C, I> {
     ids: &'ctx I,
 }
 
-impl<'ctx, A, C, I> CommandHandlerContext<'ctx, A, C, I> {
-    pub fn pool(&self) -> &PgPool {
-        self.pool
-    }
-
-    pub fn actor(&self) -> &A {
-        self.actor
-    }
-
-    pub fn tx(&mut self) -> &mut Transaction<'ctx, Postgres> {
-        &mut self.tx
-    }
-
-    pub fn clock(&self) -> &C {
-        self.clock
-    }
-
-    pub fn ids(&self) -> &I {
-        self.ids
-    }
-
+impl<'ctx, A, C, I> Ctx<'ctx, A, C, I> {
     pub async fn new(
         pool: &'ctx PgPool,
         actor: &'ctx A,
         clock: &'ctx C,
         ids: &'ctx I,
-    ) -> Result<CommandHandlerContext<'ctx, A, C, I>, CommandBusError> {
+    ) -> Result<Ctx<'ctx, A, C, I>, CommandBusError> {
         Ok(Self {
             pool,
             actor,
@@ -267,14 +286,10 @@ pub trait Command: Send + Sync + Debug {
 
     fn command_type(&self) -> CommandType;
 
-    async fn handle<A, CL, I>(
+    async fn handle<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<A, CL, I>,
-    ) -> Result<Option<Self::Event>, CommandBusError>
-    where
-        A: ActorTrait,
-        CL: Clock,
-        I: IdGenerator;
+        ctx: &mut dyn Context<'ctx>,
+    ) -> Result<Option<Self::Event>, CommandBusError>;
 
     fn supports<A>(&self, actor: &A) -> bool
     where
