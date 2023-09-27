@@ -1,10 +1,10 @@
-use super::{Command, CommandBusError, CommandHandlerContext};
+use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
 use crate::events::FragmentDislikedEvent;
-use chrono::Utc;
 use commons::{
-    actor::{Actor, ActorTrait},
+    actor::ActorTrait,
     commands::CommandType,
-    id::Id,
+    id::{Id, IdGenerator},
+    time::Clock,
 };
 use storage::{
     active::{fragment::ActiveFragment, like::ActiveLike},
@@ -34,10 +34,15 @@ impl Command for DislikeFragmentCommand {
         CommandType::LikeFragment
     }
 
-    async fn handle(
+    async fn handle<A, CL, I>(
         &self,
-        ctx: &mut CommandHandlerContext,
-    ) -> Result<Option<Self::Event>, CommandBusError> {
+        ctx: &mut CommandHandlerContext<A, CL, I>,
+    ) -> Result<Option<Self::Event>, CommandBusError>
+    where
+        A: ActorTrait,
+        CL: Clock,
+        I: IdGenerator,
+    {
         let frag = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
             DislikeFragmentCommandError::FragmentNotFound(self.fragment_id),
         )?;

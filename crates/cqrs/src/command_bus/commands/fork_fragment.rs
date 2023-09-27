@@ -1,10 +1,10 @@
-use super::{Command, CommandBusError, CommandHandlerContext};
+use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
 use crate::events::FragmentForkedEvent;
-use chrono::Utc;
 use commons::{
-    actor::{Actor, ActorTrait},
+    actor::ActorTrait,
     commands::CommandType,
-    id::Id,
+    id::{Id, IdGenerator},
+    time::Clock,
 };
 use storage::{
     active::fragment::ActiveFragment,
@@ -40,10 +40,15 @@ impl Command for ForkFragmentCommand {
         CommandType::ForkFragment
     }
 
-    async fn handle(
+    async fn handle<A, CL, I>(
         &self,
-        ctx: &mut CommandHandlerContext,
-    ) -> Result<Option<Self::Event>, CommandBusError> {
+        ctx: &mut CommandHandlerContext<A, CL, I>,
+    ) -> Result<Option<Self::Event>, CommandBusError>
+    where
+        A: ActorTrait,
+        CL: Clock,
+        I: IdGenerator,
+    {
         let user = ctx.actor().id().unwrap();
         let parent_frag = Fragment::find(ctx.pool(), &self.parent_fragment_id)
             .await

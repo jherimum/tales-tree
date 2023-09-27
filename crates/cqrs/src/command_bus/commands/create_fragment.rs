@@ -1,9 +1,10 @@
-use super::{Command, CommandBusError, CommandHandlerContext};
+use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
 use commons::{
-    actor::{Actor, ActorTrait},
+    actor::ActorTrait,
     commands::CommandType,
-    id::Id,
+    id::{Id, IdGenerator},
+    time::Clock,
 };
 use derive_builder::Builder;
 use derive_getters::Getters;
@@ -31,10 +32,15 @@ impl Command for CreateFragmentCommand {
     fn command_type(&self) -> CommandType {
         CommandType::CreateFragment
     }
-    async fn handle(
+    async fn handle<A, CL, I>(
         &self,
-        ctx: &mut CommandHandlerContext,
-    ) -> Result<Option<Self::Event>, CommandBusError> {
+        ctx: &mut CommandHandlerContext<A, CL, I>,
+    ) -> Result<Option<Self::Event>, CommandBusError>
+    where
+        A: ActorTrait,
+        CL: Clock,
+        I: IdGenerator,
+    {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)

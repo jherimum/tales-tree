@@ -11,9 +11,10 @@ use crate::{
     mock::{clock::fixed_clock, ids::fixed_id},
 };
 use cqrs::{
-    commands::{
-        update_fragment::{UpdateFragmentCommandBuilder, UpdateFragmentCommandError},
-        Command, CommandBusError,
+    command_bus::{
+        bus::Command,
+        commands::update_fragment::{UpdateFragmentCommandBuilder, UpdateFragmentCommandError},
+        error::CommandBusError,
     },
     events::FragmentUpdatedEventBuilder,
 };

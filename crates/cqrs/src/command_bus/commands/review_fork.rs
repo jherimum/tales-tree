@@ -1,8 +1,11 @@
+use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
 use crate::events::FragmentForkReviewedEvent;
-
-use super::{Command, CommandBusError, CommandHandlerContext};
-use chrono::Utc;
-use commons::{actor::Actor, commands::CommandType, id::Id};
+use commons::{
+    actor::ActorTrait,
+    commands::CommandType,
+    id::{Id, IdGenerator},
+    time::Clock,
+};
 use storage::{
     active::{fragment::ActiveFragment, review::ActiveReview},
     model::{
@@ -42,10 +45,15 @@ impl Command for ReviewForkCommand {
         todo!()
     }
 
-    async fn handle(
+    async fn handle<A, CL, I>(
         &self,
-        ctx: &mut CommandHandlerContext,
-    ) -> Result<Option<Self::Event>, CommandBusError> {
+        ctx: &mut CommandHandlerContext<A, CL, I>,
+    ) -> Result<Option<Self::Event>, CommandBusError>
+    where
+        A: ActorTrait,
+        CL: Clock,
+        I: IdGenerator,
+    {
         let user = ctx.actor().id().unwrap();
         let frag = Fragment::find(ctx.pool(), &self.fragment_id)
             .await?

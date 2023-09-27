@@ -1,14 +1,3 @@
-pub mod create_fragment;
-pub mod dislike_fragment;
-pub mod follow_user;
-pub mod fork_fragment;
-
-pub mod like_fragment;
-pub mod publish_fragment;
-pub mod review_fork;
-pub mod unfollow_user;
-pub mod update_fragment;
-
 use commons::{
     actor::ActorTrait,
     commands::CommandType,
@@ -30,48 +19,7 @@ use tap::TapFallible;
 
 use crate::events::Event;
 
-use self::{
-    create_fragment::CreateFragmentCommandError, dislike_fragment::DislikeFragmentCommandError,
-    fork_fragment::ForkFragmentCommandError, like_fragment::LikeFragmentCommandError,
-    publish_fragment::PublishFragmentCommandError, review_fork::ReviewForkCommandError,
-    update_fragment::UpdateFragmentCommandError,
-};
-
-#[derive(Debug, thiserror::Error)]
-pub enum CommandBusError {
-    #[error(transparent)]
-    DislikeFragmentCommand(#[from] DislikeFragmentCommandError),
-
-    #[error(transparent)]
-    LikeFragmentCommand(#[from] LikeFragmentCommandError),
-
-    #[error(transparent)]
-    CreateFragmentCommand(#[from] CreateFragmentCommandError),
-
-    #[error(transparent)]
-    ForkFragmentCommand(#[from] ForkFragmentCommandError),
-
-    #[error(transparent)]
-    PublishFragmentCommand(#[from] PublishFragmentCommandError),
-
-    #[error(transparent)]
-    UpdateFragmentCommand(#[from] UpdateFragmentCommandError),
-
-    #[error(transparent)]
-    ReviewForkCommand(#[from] ReviewForkCommandError),
-
-    #[error(transparent)]
-    Storage(#[from] StorageError),
-
-    #[error("Actor type forbidden")]
-    ActorNotSupported(Box<dyn ActorTrait>),
-
-    #[error(transparent)]
-    Tx(#[from] sqlx::Error),
-
-    #[error(transparent)]
-    Unexpected(#[from] anyhow::Error),
-}
+use super::error::CommandBusError;
 
 #[async_trait::async_trait]
 pub trait CommandBus {
@@ -97,20 +45,24 @@ pub trait CommandBus {
 }
 
 #[derive(Clone)]
-pub struct SimpleCommandBus {
+pub struct SimpleCommandBus<CL, I> {
     pool: PgPool,
-    clock: Arc<dyn Clock>,
-    ids: Arc<dyn IdGenerator>,
+    clock: Arc<CL>,
+    ids: Arc<I>,
 }
 
-impl SimpleCommandBus {
-    pub fn new(pool: PgPool, clock: Arc<dyn Clock>, ids: Arc<dyn IdGenerator>) -> Self {
+impl<CL, I> SimpleCommandBus<CL, I> {
+    pub fn new(pool: PgPool, clock: Arc<CL>, ids: Arc<I>) -> Self {
         Self { pool, clock, ids }
     }
 }
 
 #[async_trait::async_trait]
-impl CommandBus for SimpleCommandBus {
+impl<CL, I> CommandBus for SimpleCommandBus<CL, I>
+where
+    CL: Clock + Send + Sync + 'static,
+    I: IdGenerator + Send + Sync + 'static,
+{
     async fn dispatch<C, A>(
         &self,
         actor: A,
@@ -174,26 +126,22 @@ impl CommandBus for SimpleCommandBus {
     }
 }
 
-struct InnerExecutor<C, A> {
+struct InnerExecutor<C, A, CL, I> {
     pool: PgPool,
     actor: A,
     command: C,
-    clock: Arc<dyn Clock>,
-    ids: Arc<dyn IdGenerator>,
+    clock: Arc<CL>,
+    ids: Arc<I>,
 }
 
-impl<C, A> InnerExecutor<C, A>
+impl<C, A, CL, I> InnerExecutor<C, A, CL, I>
 where
     C: Command,
     A: ActorTrait + Clone + 'static,
+    CL: Clock + Send + Sync,
+    I: IdGenerator + Send + Sync,
 {
-    pub fn new(
-        pool: PgPool,
-        actor: A,
-        command: C,
-        clock: Arc<dyn Clock>,
-        ids: Arc<dyn IdGenerator>,
-    ) -> Self {
+    pub fn new(pool: PgPool, actor: A, command: C, clock: Arc<CL>, ids: Arc<I>) -> Self {
         Self {
             pool,
             actor,
@@ -254,7 +202,7 @@ where
 
     async fn save_event<'ctx>(
         &self,
-        ctx: &mut CommandHandlerContext<'ctx>,
+        ctx: &mut CommandHandlerContext<'ctx, A, CL, I>,
         event: impl Event,
     ) -> Result<DbEvent, StorageError> {
         DbEventBuilder::default()
@@ -269,20 +217,30 @@ where
     }
 }
 
-pub struct CommandHandlerContext<'ctx> {
+pub struct CommandHandlerContext<'ctx, A, C, I>
+where
+    A: ActorTrait,
+    C: Clock,
+    I: IdGenerator,
+{
     pool: &'ctx PgPool,
-    actor: &'ctx dyn ActorTrait,
+    actor: &'ctx A,
     tx: Transaction<'ctx, Postgres>,
-    clock: &'ctx dyn Clock,
-    ids: &'ctx dyn IdGenerator,
+    clock: &'ctx C,
+    ids: &'ctx I,
 }
 
-impl<'ctx> CommandHandlerContext<'ctx> {
+impl<'ctx, A, C, I> CommandHandlerContext<'ctx, A, C, I>
+where
+    A: ActorTrait,
+    C: Clock,
+    I: IdGenerator,
+{
     pub fn pool(&self) -> &PgPool {
         self.pool
     }
 
-    pub fn actor(&self) -> &dyn ActorTrait {
+    pub fn actor(&self) -> &A {
         self.actor
     }
 
@@ -290,20 +248,20 @@ impl<'ctx> CommandHandlerContext<'ctx> {
         &mut self.tx
     }
 
-    pub fn clock(&self) -> &dyn Clock {
+    pub fn clock(&self) -> &C {
         self.clock
     }
 
-    pub fn ids(&self) -> &dyn IdGenerator {
+    pub fn ids(&self) -> &I {
         self.ids
     }
 
     pub async fn new(
         pool: &'ctx PgPool,
-        actor: &'ctx dyn ActorTrait,
-        clock: &'ctx dyn Clock,
-        ids: &'ctx dyn IdGenerator,
-    ) -> Result<CommandHandlerContext<'ctx>, CommandBusError> {
+        actor: &'ctx A,
+        clock: &'ctx C,
+        ids: &'ctx I,
+    ) -> Result<CommandHandlerContext<'ctx, A, C, I>, CommandBusError> {
         Ok(Self {
             pool,
             actor,
@@ -320,10 +278,14 @@ pub trait Command: Send + Sync + Debug {
 
     fn command_type(&self) -> CommandType;
 
-    async fn handle(
+    async fn handle<A, CL, I>(
         &self,
-        ctx: &mut CommandHandlerContext,
-    ) -> Result<Option<Self::Event>, CommandBusError>;
+        ctx: &mut CommandHandlerContext<A, CL, I>,
+    ) -> Result<Option<Self::Event>, CommandBusError>
+    where
+        A: ActorTrait,
+        CL: Clock,
+        I: IdGenerator;
 
     fn supports<A>(&self, actor: &A) -> bool
     where

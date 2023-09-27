@@ -1,20 +1,17 @@
-use std::sync::Arc;
-
 use ::commons::{
-    events::EventType,
     id::{Id, MockIdGenerator},
     time::MockClock,
 };
 use cqrs::{
-    commands::{
-        create_fragment::{
-            CreateFragmentCommand, CreateFragmentCommandBuilder, CreateFragmentCommandError,
-        },
-        CommandBus, SimpleCommandBus,
+    command_bus::{
+        bus::CommandBus,
+        bus::SimpleCommandBus,
+        commands::create_fragment::{CreateFragmentCommand, CreateFragmentCommandBuilder},
     },
     events::FragmentCreatedEvent,
 };
 use sqlx::PgPool;
+use std::sync::Arc;
 use storage::{
     active::{event::ActiveEvent, user::ActiveUser},
     model::{event::DbEvent, user::UserBuilder},

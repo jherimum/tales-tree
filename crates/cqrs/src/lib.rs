@@ -1,2 +1,2 @@
-pub mod commands;
+pub mod command_bus;
 pub mod events;
