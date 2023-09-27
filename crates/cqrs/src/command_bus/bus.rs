@@ -1,3 +1,5 @@
+use super::error::CommandBusError;
+use crate::events::Event;
 use commons::{
     actor::ActorTrait,
     commands::CommandType,
@@ -16,10 +18,6 @@ use storage::{
     StorageError,
 };
 use tap::TapFallible;
-
-use crate::events::Event;
-
-use super::error::CommandBusError;
 
 #[async_trait::async_trait]
 pub trait CommandBus {
@@ -159,8 +157,9 @@ where
                 self.command.command_type()
             );
 
-            let a = self.actor.clone();
-            return Err(CommandBusError::ActorNotSupported(Box::new(a)));
+            return Err(CommandBusError::ActorNotSupported(Box::new(
+                self.actor.clone(),
+            )));
         };
 
         let mut ctx = CommandHandlerContext::new(
@@ -217,12 +216,7 @@ where
     }
 }
 
-pub struct CommandHandlerContext<'ctx, A, C, I>
-where
-    A: ActorTrait,
-    C: Clock,
-    I: IdGenerator,
-{
+pub struct CommandHandlerContext<'ctx, A, C, I> {
     pool: &'ctx PgPool,
     actor: &'ctx A,
     tx: Transaction<'ctx, Postgres>,
@@ -230,12 +224,7 @@ where
     ids: &'ctx I,
 }
 
-impl<'ctx, A, C, I> CommandHandlerContext<'ctx, A, C, I>
-where
-    A: ActorTrait,
-    C: Clock,
-    I: IdGenerator,
-{
+impl<'ctx, A, C, I> CommandHandlerContext<'ctx, A, C, I> {
     pub fn pool(&self) -> &PgPool {
         self.pool
     }

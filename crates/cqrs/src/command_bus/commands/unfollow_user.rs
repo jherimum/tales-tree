@@ -1,6 +1,5 @@
 use crate::command_bus::{bus::Command, bus::CommandHandlerContext, error::CommandBusError};
 use crate::events::UserUnfollowedEvent;
-
 use commons::{
     actor::ActorTrait,
     commands::CommandType,
