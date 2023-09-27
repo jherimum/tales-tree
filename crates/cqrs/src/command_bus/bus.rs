@@ -228,12 +228,7 @@ pub trait Context<'ctx>: Send + Sync {
     fn ids(&self) -> &dyn IdGenerator;
 }
 
-impl<'ctx, A, C, I> Context<'ctx> for Ctx<'ctx, A, C, I>
-where
-    A: ActorTrait,
-    C: Clock,
-    I: IdGenerator,
-{
+impl<'ctx> Context<'ctx> for Ctx<'ctx> {
     fn pool(&self) -> &PgPool {
         self.pool
     }
@@ -255,21 +250,21 @@ where
     }
 }
 
-pub struct Ctx<'ctx, A, C, I> {
+pub struct Ctx<'ctx> {
     pool: &'ctx PgPool,
-    actor: &'ctx A,
+    actor: &'ctx dyn ActorTrait,
     tx: Transaction<'ctx, Postgres>,
-    clock: &'ctx C,
-    ids: &'ctx I,
+    clock: &'ctx dyn Clock,
+    ids: &'ctx dyn IdGenerator,
 }
 
-impl<'ctx, A, C, I> Ctx<'ctx, A, C, I> {
+impl<'ctx> Ctx<'ctx> {
     pub async fn new(
         pool: &'ctx PgPool,
-        actor: &'ctx A,
-        clock: &'ctx C,
-        ids: &'ctx I,
-    ) -> Result<Ctx<'ctx, A, C, I>, CommandBusError> {
+        actor: &'ctx dyn ActorTrait,
+        clock: &'ctx dyn Clock,
+        ids: &'ctx dyn IdGenerator,
+    ) -> Result<Ctx<'ctx>, CommandBusError> {
         Ok(Self {
             pool,
             actor,
