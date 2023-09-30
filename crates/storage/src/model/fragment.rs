@@ -106,6 +106,10 @@ impl Fragment {
     pub fn is_fork(&self) -> bool {
         self.parent_id.is_some()
     }
+
+    pub fn is_approved(&self) -> bool {
+        self.state == FragmentState::Approved
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, sqlx::Type, Copy, Default)]

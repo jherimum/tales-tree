@@ -35,7 +35,6 @@ impl Command for PublishFragmentCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
         todo!()
     }
 
@@ -63,7 +62,7 @@ impl Command for PublishFragmentCommand {
             (FragmentState::Draft, false) => Ok(()),
             (FragmentState::Approved, true) => Ok(()),
             (FragmentState::Draft, true) => Err(PublishFragmentCommandError::InvalidState(
-                "forks need to be aprovved to be published",
+                "forks needs approval to be published",
             )),
             (FragmentState::Published, _) => Err(PublishFragmentCommandError::InvalidState(
                 "fragment is already published",
