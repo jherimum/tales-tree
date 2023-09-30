@@ -1,4 +1,4 @@
-use crate::command_bus::bus::Context;
+use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
@@ -30,7 +30,7 @@ impl Command for CreateFragmentCommand {
     }
     async fn handle<'ctx>(
         &self,
-        ctx: &mut dyn Context<'ctx>,
+        ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()

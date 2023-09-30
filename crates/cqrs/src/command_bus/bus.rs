@@ -201,7 +201,7 @@ where
 
     async fn save_event<'ctx>(
         &self,
-        ctx: &mut dyn Context<'ctx>,
+        ctx: &mut Ctx<'ctx>,
         event: impl Event,
     ) -> Result<DbEvent, StorageError> {
         DbEventBuilder::default()
@@ -213,40 +213,6 @@ where
             .unwrap()
             .save(ctx.tx().as_mut())
             .await
-    }
-}
-
-pub trait Context<'ctx>: Send + Sync {
-    fn pool(&self) -> &PgPool;
-
-    fn actor(&self) -> &dyn ActorTrait;
-
-    fn tx(&mut self) -> &mut Transaction<'ctx, Postgres>;
-
-    fn clock(&self) -> &dyn Clock;
-
-    fn ids(&self) -> &dyn IdGenerator;
-}
-
-impl<'ctx> Context<'ctx> for Ctx<'ctx> {
-    fn pool(&self) -> &PgPool {
-        self.pool
-    }
-
-    fn actor(&self) -> &dyn ActorTrait {
-        self.actor
-    }
-
-    fn tx(&mut self) -> &mut Transaction<'ctx, Postgres> {
-        &mut self.tx
-    }
-
-    fn clock(&self) -> &dyn Clock {
-        self.clock
-    }
-
-    fn ids(&self) -> &dyn IdGenerator {
-        self.ids
     }
 }
 
@@ -273,6 +239,25 @@ impl<'ctx> Ctx<'ctx> {
             ids,
         })
     }
+    pub fn pool(&self) -> &PgPool {
+        self.pool
+    }
+
+    pub fn actor(&self) -> &dyn ActorTrait {
+        self.actor
+    }
+
+    pub fn tx(&mut self) -> &mut Transaction<'ctx, Postgres> {
+        &mut self.tx
+    }
+
+    pub fn clock(&self) -> &dyn Clock {
+        self.clock
+    }
+
+    pub fn ids(&self) -> &dyn IdGenerator {
+        self.ids
+    }
 }
 
 #[async_trait::async_trait]
@@ -283,7 +268,7 @@ pub trait Command: Send + Sync + Debug {
 
     async fn handle<'ctx>(
         &self,
-        ctx: &mut dyn Context<'ctx>,
+        ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError>;
 
     fn supports<A>(&self, actor: &A) -> bool

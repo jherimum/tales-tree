@@ -1,4 +1,4 @@
-use crate::command_bus::bus::Context;
+use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::UserFollowedEvent;
 use commons::{commands::CommandType, id::Id};
@@ -23,7 +23,7 @@ impl Command for FollowUserCommand {
 
     async fn handle<'ctx>(
         &self,
-        ctx: &mut dyn Context<'ctx>,
+        ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let actual_follow = Follow::find(ctx.pool(), &user, &self.followee_user_id)

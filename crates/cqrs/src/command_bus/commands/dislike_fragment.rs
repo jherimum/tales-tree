@@ -1,4 +1,4 @@
-use crate::command_bus::bus::Context;
+use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentDislikedEvent;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
@@ -32,7 +32,7 @@ impl Command for DislikeFragmentCommand {
 
     async fn handle<'ctx>(
         &self,
-        ctx: &mut dyn Context<'ctx>,
+        ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let frag = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
             DislikeFragmentCommandError::FragmentNotFound(self.fragment_id),

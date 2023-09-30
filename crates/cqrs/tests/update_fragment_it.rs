@@ -12,7 +12,7 @@ use crate::{
 };
 use cqrs::{
     command_bus::{
-        bus::{Command, Context},
+        bus::Command,
         commands::update_fragment::{UpdateFragmentCommandBuilder, UpdateFragmentCommandError},
         error::CommandBusError,
     },

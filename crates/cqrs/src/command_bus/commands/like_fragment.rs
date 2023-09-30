@@ -1,4 +1,4 @@
-use crate::command_bus::bus::Context;
+use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentLikedEvent;
 use commons::{commands::CommandType, id::Id};
@@ -34,7 +34,7 @@ impl Command for LikeFragmentCommand {
     }
     async fn handle<'ctx>(
         &self,
-        ctx: &mut dyn Context<'ctx>,
+        ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
         let frag = Fragment::find(ctx.pool(), &self.fragment_id)

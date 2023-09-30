@@ -1,4 +1,4 @@
-use crate::command_bus::bus::Context as BusContext;
+use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentPublishedEvent;
 use anyhow::Context;
@@ -41,7 +41,7 @@ impl Command for PublishFragmentCommand {
 
     async fn handle<'ctx>(
         &self,
-        ctx: &mut dyn BusContext<'ctx>,
+        ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
 
