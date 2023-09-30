@@ -1,4 +1,4 @@
-use commons::{events::EventType, id::Id, time::DateTime};
+use commons::{actor::ActorType, events::EventType, id::Id, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{de::DeserializeOwned, Serialize};
@@ -17,8 +17,8 @@ impl EventData {
     }
 }
 
-impl<S: Serialize> From<S> for EventData {
-    fn from(value: S) -> Self {
+impl<S: Serialize> From<&S> for EventData {
+    fn from(value: &S) -> Self {
         Self(serde_json::to_value(value).unwrap())
     }
 }
@@ -29,6 +29,8 @@ pub struct DbEvent {
     event_type: EventType,
     event_data: EventData,
     timestamp: DateTime,
+    actor_type: ActorType,
+    actor_id: Option<Id>,
 }
 
 impl Entity for DbEvent {
