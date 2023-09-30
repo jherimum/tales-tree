@@ -1,4 +1,7 @@
-use commons::{actor::ActorTrait, id::Id};
+use commons::{
+    actor::{Actor, ActorTrait},
+    id::Id,
+};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use sqlx::FromRow;
@@ -20,10 +23,7 @@ impl Entity for User {
 }
 
 impl ActorTrait for User {
-    fn id(&self) -> Option<Id> {
-        Some(self.id)
-    }
-    fn actor_type(&self) -> commons::actor::ActorType {
-        commons::actor::ActorType::User
+    fn actor(&self) -> Actor {
+        Actor::User(self.id)
     }
 }

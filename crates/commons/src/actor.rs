@@ -6,11 +6,16 @@ use sqlx::Type;
 use crate::id::Id;
 
 pub trait ActorTrait: Debug + Send + Sync {
-    fn id(&self) -> Option<Id>;
-    fn actor_type(&self) -> ActorType;
+    fn id(&self) -> Option<Id> {
+        self.actor().id()
+    }
+    fn actor_type(&self) -> ActorType {
+        (&self.actor()).into()
+    }
+    fn actor(&self) -> Actor;
 }
 
-#[derive(Debug, Clone, Type)]
+#[derive(Debug, Clone, Type, PartialEq, Eq)]
 #[sqlx(type_name = "actor_type", rename_all = "snake_case")]
 pub enum ActorType {
     User,

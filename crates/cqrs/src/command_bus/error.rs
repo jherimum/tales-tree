@@ -7,6 +7,8 @@ use crate::command_bus::commands::{
 use commons::actor::ActorTrait;
 use storage::StorageError;
 
+use super::commands::submit_fork::SubmitForkCommandError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum CommandBusError {
     #[error(transparent)]
@@ -29,6 +31,9 @@ pub enum CommandBusError {
 
     #[error(transparent)]
     ReviewForkCommand(#[from] ReviewForkCommandError),
+
+    #[error(transparent)]
+    SubmitForkCommand(#[from] SubmitForkCommandError),
 
     #[error(transparent)]
     Storage(#[from] StorageError),

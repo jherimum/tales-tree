@@ -1,13 +1,14 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
+use commons::actor::ActorType;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 use storage::{
     active::fragment::ActiveFragment,
-    model::fragment::{Fragment, FragmentBuilder, FragmentState},
+    model::fragment::{Fragment, FragmentBuilder},
 };
 use tap::TapFallible;
 
@@ -34,7 +35,7 @@ impl Command for CreateFragmentCommand {
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)
-            .author_id(ctx.actor().id().unwrap())
+            .author_id(ctx.actor().actor().id().unwrap())
             .content(self.content.clone())
             .created_at(now)
             .last_modified_at(now)
@@ -48,7 +49,7 @@ impl Command for CreateFragmentCommand {
     }
 
     fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
-        true
+        actor.actor().is_user()
     }
 }
 

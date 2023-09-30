@@ -59,21 +59,25 @@ impl Command for PublishFragmentCommand {
             .into());
         }
 
-        if !fragment.is_draft() {
-            return Err(PublishFragmentCommandError::InvalidState(
-                "fragment should be in draft state to be published",
-            )
-            .into());
-        }
-
-        let state = if fragment.is_fork() {
-            FragmentState::WaitingReview
-        } else {
-            FragmentState::Published
-        };
+        match (fragment.state(), fragment.is_fork()) {
+            (FragmentState::Draft, false) => Ok(()),
+            (FragmentState::Approved, true) => Ok(()),
+            (FragmentState::Draft, true) => Err(PublishFragmentCommandError::InvalidState(
+                "forks need to be aprovved to be published",
+            )),
+            (FragmentState::Published, _) => Err(PublishFragmentCommandError::InvalidState(
+                "fragment is already published",
+            )),
+            (_, true) => Err(PublishFragmentCommandError::InvalidState(
+                "Fork can not be published",
+            )),
+            (_, false) => Err(PublishFragmentCommandError::InvalidState(
+                "Fragment can not be published",
+            )),
+        }?;
 
         Ok(fragment
-            .set_state(state)
+            .set_state(FragmentState::Published)
             .set_last_modified_at(ctx.clock().now())
             .update(ctx.tx().as_mut())
             .await

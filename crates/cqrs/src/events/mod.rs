@@ -6,6 +6,25 @@ use std::fmt::Debug;
 use storage::model::review::ReviewAction;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+pub struct ForkSubmittedEvent {
+    pub fragment_id: Id,
+    pub timestamp: DateTime,
+    pub actor: Actor,
+}
+
+impl Event for ForkSubmittedEvent {
+    fn event_type(&self) -> EventType {
+        EventType::ForkSubmitted
+    }
+    fn timestamp(&self) -> DateTime {
+        self.timestamp
+    }
+    fn actor(&self) -> Actor {
+        self.actor
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentCreatedEvent {
     fragment_id: Id,
     user_id: Id,

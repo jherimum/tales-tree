@@ -42,7 +42,7 @@ impl Command for DislikeFragmentCommand {
             return Err(DislikeFragmentCommandError::FragmentNotPublished(self.fragment_id).into());
         }
 
-        let actual_like = Like::find(ctx.pool(), frag.id(), &ctx.actor().id().unwrap())
+        let actual_like = Like::find(ctx.pool(), frag.id(), &ctx.actor().actor().id().unwrap())
             .await
             .tap_err(|e| tracing::error!("Failed to find like: {}", e))?;
 
@@ -50,7 +50,7 @@ impl Command for DislikeFragmentCommand {
             Some(l) => match l.delete(ctx.tx().as_mut()).await? {
                 true => Ok(Some(FragmentDislikedEvent {
                     fragment_id: self.fragment_id,
-                    user_id: ctx.actor().id().unwrap(),
+                    user_id: ctx.actor().actor().id().unwrap(),
                     timestamp: ctx.clock().now(),
                 })),
                 false => Ok(None),

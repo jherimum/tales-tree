@@ -12,4 +12,5 @@ pub enum CommandType {
     PublishFragment,
     UpdateFragment,
     ReviewFork,
+    SubmitFork,
 }

@@ -116,6 +116,7 @@ pub enum FragmentState {
     Published,
     WaitingReview,
     Rejected,
+    Approved,
     WaitingChanges,
 }
 

@@ -1,4 +1,4 @@
-CREATE TYPE fragment_state AS ENUM ('draft', 'published', 'waiting_review', 'rejected', 'waiting_changes');
+CREATE TYPE fragment_state AS ENUM ('draft', 'published', 'waiting_review', 'rejected', 'waiting_changes', 'aproved');
 CREATE TYPE review_action AS ENUM ('approve', 'reject', 'request_changes');
 CREATE TYPE actor_type AS ENUM ('system', 'user');
 CREATE TYPE event_type AS ENUM (

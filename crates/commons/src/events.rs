@@ -12,4 +12,5 @@ pub enum EventType {
     FragmentDisliked,
     UserFollowed,
     UserUnfollowed,
+    ForkSubmitted,
 }
