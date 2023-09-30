@@ -1,6 +1,7 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentForkReviewedEvent;
+use commons::actor::Actor;
 use commons::{commands::CommandType, id::Id};
 use storage::{
     active::{fragment::ActiveFragment, review::ActiveReview},
@@ -102,6 +103,7 @@ impl From<Review> for FragmentForkReviewedEvent {
             action: *value.action(),
             comment: value.comment().clone(),
             timestamp: *value.created_at(),
+            actor: Actor::User(*value.reviewer_id()),
         }
     }
 }

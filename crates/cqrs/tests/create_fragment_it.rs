@@ -33,7 +33,6 @@ fn test_handle_success(pool: PgPool) {
     let command = CreateFragmentCommandBuilder::default()
         .fragment_id(Id::new())
         .content("Fragment".to_owned())
-        .end(false)
         .build()
         .unwrap();
 

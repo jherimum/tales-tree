@@ -18,7 +18,6 @@ pub enum CreateFragmentCommandError {}
 pub struct CreateFragmentCommand {
     fragment_id: Id,
     content: String,
-    end: bool,
 }
 
 #[async_trait::async_trait]
@@ -37,8 +36,6 @@ impl Command for CreateFragmentCommand {
             .id(self.fragment_id)
             .author_id(ctx.actor().id().unwrap())
             .content(self.content.clone())
-            .state(FragmentState::Draft)
-            .end(self.end)
             .created_at(now)
             .last_modified_at(now)
             .build()
@@ -46,7 +43,7 @@ impl Command for CreateFragmentCommand {
             .map_err(anyhow::Error::from)?
             .save(ctx.tx().as_mut())
             .await
-            .map(|f| Some(f.into()))
+            .map(|f| Some(From::from(&f)))
             .tap_err(|e| tracing::error!("Failed to save fragment:{e}"))?)
     }
 
@@ -55,8 +52,8 @@ impl Command for CreateFragmentCommand {
     }
 }
 
-impl From<Fragment> for FragmentCreatedEvent {
-    fn from(value: Fragment) -> Self {
+impl From<&Fragment> for FragmentCreatedEvent {
+    fn from(value: &Fragment) -> Self {
         FragmentCreatedEventBuilder::default()
             .fragment_id(*value.id())
             .user_id(*value.author_id())

@@ -1,4 +1,4 @@
-use commons::{events::EventType, id::Id, time::DateTime};
+use commons::{actor::Actor, events::EventType, id::Id, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -21,13 +21,16 @@ impl Event for FragmentCreatedEvent {
     fn timestamp(&self) -> DateTime {
         self.timestamp
     }
+    fn actor(&self) -> Actor {
+        Actor::User(self.user_id)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentDislikedEvent {
     pub fragment_id: Id,
-    pub user_id: Id,
     pub timestamp: DateTime,
+    pub user_id: Id,
 }
 
 impl Event for FragmentDislikedEvent {
@@ -36,6 +39,9 @@ impl Event for FragmentDislikedEvent {
     }
     fn timestamp(&self) -> DateTime {
         self.timestamp
+    }
+    fn actor(&self) -> Actor {
+        Actor::User(self.user_id)
     }
 }
 
@@ -56,12 +62,16 @@ impl Event for FragmentForkedEvent {
     fn timestamp(&self) -> DateTime {
         self.timestamp
     }
+    fn actor(&self) -> Actor {
+        Actor::User(self.user_id)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
 pub struct FragmentPublishedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
+    pub actor: Actor,
 }
 
 impl Event for FragmentPublishedEvent {
@@ -70,6 +80,9 @@ impl Event for FragmentPublishedEvent {
     }
     fn timestamp(&self) -> DateTime {
         self.timestamp
+    }
+    fn actor(&self) -> Actor {
+        self.actor
     }
 }
 
@@ -80,6 +93,7 @@ pub struct FragmentUpdatedEvent {
     pub timestamp: DateTime,
     pub content: String,
     pub end: bool,
+    pub actor: Actor,
 }
 
 impl Event for FragmentUpdatedEvent {
@@ -89,6 +103,9 @@ impl Event for FragmentUpdatedEvent {
     fn timestamp(&self) -> DateTime {
         self.timestamp
     }
+    fn actor(&self) -> Actor {
+        self.actor
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
@@ -97,6 +114,7 @@ pub struct FragmentForkReviewedEvent {
     pub timestamp: DateTime,
     pub comment: Option<String>,
     pub action: ReviewAction,
+    pub actor: Actor,
 }
 
 impl Event for FragmentForkReviewedEvent {
@@ -105,6 +123,9 @@ impl Event for FragmentForkReviewedEvent {
     }
     fn timestamp(&self) -> DateTime {
         self.timestamp
+    }
+    fn actor(&self) -> Actor {
+        self.actor
     }
 }
 
@@ -122,6 +143,9 @@ impl Event for FragmentLikedEvent {
     fn timestamp(&self) -> DateTime {
         self.timestamp
     }
+    fn actor(&self) -> Actor {
+        Actor::User(self.user_id)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
@@ -137,6 +161,9 @@ impl Event for UserFollowedEvent {
     }
     fn timestamp(&self) -> DateTime {
         self.timestamp
+    }
+    fn actor(&self) -> Actor {
+        Actor::User(self.followee_id)
     }
 }
 
@@ -154,15 +181,20 @@ impl Event for UserUnfollowedEvent {
     fn timestamp(&self) -> DateTime {
         self.timestamp
     }
+    fn actor(&self) -> Actor {
+        Actor::User(self.followee_id)
+    }
 }
 
 pub trait Event:
     Serialize + DeserializeOwned + Debug + Clone + PartialEq + Eq + Send + Sync
 {
     fn event_type(&self) -> EventType;
-    fn data(&self) -> Self {
-        self.clone()
+    fn data(&self) -> &Self {
+        self
     }
 
     fn timestamp(&self) -> DateTime;
+
+    fn actor(&self) -> Actor;
 }

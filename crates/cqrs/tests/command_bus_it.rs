@@ -41,7 +41,6 @@ async fn test_command_bus(pool: PgPool) {
         CreateFragmentCommandBuilder::default()
             .fragment_id(Id::new())
             .content("First tale".to_string())
-            .end(false)
             .build()
             .unwrap(),
     )

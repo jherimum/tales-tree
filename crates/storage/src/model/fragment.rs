@@ -46,6 +46,7 @@ pub struct Fragment {
 
     content: String,
 
+    #[builder(default)]
     state: FragmentState,
 
     #[builder(default)]
@@ -57,6 +58,7 @@ pub struct Fragment {
     path: Path,
 
     #[sqlx(rename = "_end")]
+    #[builder(default)]
     end: bool,
 
     #[setters(skip)]
@@ -106,9 +108,10 @@ impl Fragment {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, sqlx::Type, Copy)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, sqlx::Type, Copy, Default)]
 #[sqlx(type_name = "fragment_state", rename_all = "snake_case")]
 pub enum FragmentState {
+    #[default]
     Draft,
     Published,
     WaitingReview,

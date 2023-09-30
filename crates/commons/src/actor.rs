@@ -1,5 +1,6 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
+use serde::{Deserialize, Serialize};
 use sqlx::Type;
 
 use crate::id::Id;
@@ -16,7 +17,7 @@ pub enum ActorType {
     System,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Copy)]
 pub enum Actor {
     User(Id),
     System,

@@ -1,6 +1,7 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentUpdatedEvent;
+use commons::actor::Actor;
 use commons::{commands::CommandType, id::Id};
 use derive_getters::Getters;
 use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
@@ -77,6 +78,7 @@ impl From<Fragment> for FragmentUpdatedEvent {
             content: value.content().clone(),
             timestamp: *value.last_modified_at(),
             end: *value.end(),
+            actor: Actor::User(*value.author_id()),
         }
     }
 }

@@ -87,6 +87,7 @@ impl From<Fragment> for FragmentPublishedEvent {
         FragmentPublishedEvent {
             fragment_id: *value.id(),
             timestamp: *value.last_modified_at(),
+            actor: commons::actor::Actor::User(*value.author_id()),
         }
     }
 }
