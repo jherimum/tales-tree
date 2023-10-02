@@ -6,6 +6,7 @@ use storage::{active::follow::ActiveFollow, model::follow::Follow};
 use tap::TapFallible;
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
+#[builder(setter(into))]
 pub struct UnfollowUserCommand {
     followee_user_id: Id,
 }

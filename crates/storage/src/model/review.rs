@@ -1,4 +1,4 @@
-use commons::{id::Id, time::DateTime};
+use commons::{id::Id, review::Comment, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,7 @@ pub struct Review {
     fragment_id: Id,
     reviewer_id: Id,
     action: ReviewAction,
-    comment: Option<String>,
+    comment: Option<Comment>,
     created_at: DateTime,
 }
 

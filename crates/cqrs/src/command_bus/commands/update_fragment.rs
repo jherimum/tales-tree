@@ -1,7 +1,8 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentUpdatedEvent;
-use commons::actor::Actor;
+use commons::actor::{Actor, ActorType};
+use commons::fragment::Content;
 use commons::{commands::CommandType, id::Id};
 use derive_getters::Getters;
 use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
@@ -11,7 +12,7 @@ use tap::TapFallible;
 #[builder(setter(into))]
 pub struct UpdateFragmentCommand {
     fragment_id: Id,
-    content: String,
+    content: Content,
     end: bool,
 }
 
@@ -23,8 +24,11 @@ pub enum UpdateFragmentCommandError {
     #[error("{0}")]
     UserWithoutPermission(Id),
 
-    #[error("Fragment {0} is not editable")]
+    #[error("Fragment is not editable")]
     NonEditableFragment(Id),
+
+    #[error("Only forks can be ended")]
+    NonEndabledFragment(Id),
 }
 
 #[async_trait::async_trait]
@@ -44,6 +48,10 @@ impl Command for UpdateFragmentCommand {
         let fragment = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
             UpdateFragmentCommandError::FragmentNotFound(self.fragment_id),
         )?;
+
+        if self.end && !fragment.is_fork() {
+            return Err(UpdateFragmentCommandError::NonEndabledFragment(self.fragment_id).into());
+        }
 
         if !fragment.is_author(user) {
             return Err(UpdateFragmentCommandError::UserWithoutPermission(user).into());
@@ -66,8 +74,7 @@ impl Command for UpdateFragmentCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        ActorType::User == actor.actor_type()
     }
 }
 

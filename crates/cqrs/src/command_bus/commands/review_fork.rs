@@ -1,7 +1,8 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentForkReviewedEvent;
-use commons::actor::Actor;
+use commons::actor::{Actor, ActorType};
+use commons::review::Comment;
 use commons::{commands::CommandType, id::Id};
 use storage::{
     active::{fragment::ActiveFragment, review::ActiveReview},
@@ -13,11 +14,12 @@ use storage::{
 use tap::TapFallible;
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
+#[builder(setter(into))]
 pub struct ReviewForkCommand {
     pub review_id: Id,
     pub fragment_id: Id,
     pub action: ReviewAction,
-    pub comment: Option<String>,
+    pub comment: Option<Comment>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -38,8 +40,7 @@ impl Command for ReviewForkCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        ActorType::User == actor.actor_type()
     }
 
     async fn handle<'ctx>(
@@ -52,13 +53,10 @@ impl Command for ReviewForkCommand {
             .ok_or(ReviewForkCommandError::FragmentNotFound(self.fragment_id))?;
 
         if !frag.is_fork() {
-            return Err(ReviewForkCommandError::InvalidState(
-                "fragment should be in fork state to be reviewed",
-            )
-            .into());
+            return Err(ReviewForkCommandError::InvalidState("Only forks can be reviewed").into());
         }
 
-        if !frag.is_waiting_review() {
+        if !frag.is_submitted() {
             return Err(ReviewForkCommandError::InvalidState(
                 "fragment should be in waiting review state to be reviewed",
             )
@@ -69,7 +67,7 @@ impl Command for ReviewForkCommand {
 
         if !parent.is_author(user) {
             return Err(ReviewForkCommandError::InvalidState(
-                "only the parent author can review a fork",
+                "only the parent author can review this fork",
             )
             .into());
         }

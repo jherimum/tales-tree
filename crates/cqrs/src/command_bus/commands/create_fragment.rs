@@ -1,7 +1,7 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
-use commons::actor::ActorType;
+use commons::fragment::Content;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
 use derive_builder::Builder;
 use derive_getters::Getters;
@@ -16,9 +16,10 @@ use tap::TapFallible;
 pub enum CreateFragmentCommandError {}
 
 #[derive(Debug, Builder, Deserialize, Serialize, Getters)]
+#[builder(setter(into))]
 pub struct CreateFragmentCommand {
     fragment_id: Id,
-    content: String,
+    content: Content,
 }
 
 #[async_trait::async_trait]

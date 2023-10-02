@@ -17,6 +17,7 @@ use storage::{
 use tap::TapFallible;
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
+#[builder(setter(into))]
 pub struct SubmitForkCommand {
     pub fragment_id: Id,
 }
@@ -53,33 +54,27 @@ impl Command for SubmitForkCommand {
             .tap_err(|e| tracing::error!("Failed to find fork: {e:?}"))?
             .ok_or(SubmitForkCommandError::ForkNotFound(self.fragment_id))?;
 
-        if !fork.is_fork() {
-            return Err(SubmitForkCommandError::InvalidState("Only forks can be submitted").into());
-        }
-
         if !fork.is_author(ctx.actor().id().unwrap()) {
             return Err(
                 SubmitForkCommandError::Forbidden("Only the fork author can submit it").into(),
             );
         }
 
-        if !fork.is_draft() {
-            return Err(
-                SubmitForkCommandError::InvalidState("Only draft forks can be submitted").into(),
-            );
+        if fork.is_submittable() {
+            let fragment = fork
+                .set_state(FragmentState::Submitted)
+                .set_last_modified_at(ctx.clock().now())
+                .save(ctx.tx().as_mut())
+                .await
+                .tap_err(|e| tracing::error!("Failed to save fork: {e:?}"))?;
+
+            return Ok(Some(ForkSubmittedEvent {
+                fragment_id: self.fragment_id,
+                timestamp: *fragment.last_modified_at(),
+                actor: ctx.actor().actor(),
+            }));
         }
 
-        let fragment = fork
-            .set_state(FragmentState::WaitingReview)
-            .set_last_modified_at(ctx.clock().now())
-            .save(ctx.tx().as_mut())
-            .await
-            .tap_err(|e| tracing::error!("Failed to save fork: {e:?}"))?;
-
-        Ok(Some(ForkSubmittedEvent {
-            fragment_id: self.fragment_id,
-            timestamp: *fragment.last_modified_at(),
-            actor: ctx.actor().actor(),
-        }))
+        Err(SubmitForkCommandError::InvalidState("Fork can not be submitted").into())
     }
 }

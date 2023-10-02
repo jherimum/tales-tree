@@ -37,6 +37,7 @@ fn test_handle_success(pool: PgPool) {
         .unwrap();
 
     let result = command.handle(&mut ctx).await.unwrap();
+
     if let Some(e) = result {
         assert_eq!(
             e,
@@ -50,7 +51,7 @@ fn test_handle_success(pool: PgPool) {
                 .unwrap()
         );
     } else {
-        panic!("a fragment should be crated")
+        panic!("ragmentCreatedEvent should be created")
     }
 
     let frag = Fragment::find(ctx.tx().as_mut(), command.fragment_id())

@@ -20,6 +20,7 @@ use cqrs::{
 };
 
 use ::commons::{
+    actor::ActorTrait,
     id::{Id, MockIdGenerator},
     time::{DateTime, MockClock},
 };
@@ -58,6 +59,7 @@ fn test_success_draft_update(pool: PgPool) {
                 .fragment_id(*draft.id())
                 .content(NEW_CONTENT)
                 .timestamp(now.clone())
+                .actor(user.actor())
                 .end(true)
                 .build()
                 .unwrap()
@@ -155,12 +157,14 @@ fn test_fragment_not_found(pool: PgPool) {
     let ids = MockIdGenerator::default();
     let mut ctx = create_context(&pool, &user, &clock, &ids).await;
 
-    match command.handle(&mut ctx).await {
-        Ok(_) => panic!("Expected Err(CommandBusError) but got Ok(_)"),
+    let result = command.handle(&mut ctx).await;
+
+    match result {
         Err(CommandBusError::UpdateFragmentCommand(e)) => assert_eq!(
             e,
             UpdateFragmentCommandError::FragmentNotFound(*command.fragment_id())
         ),
-        Err(_) => panic!("Not expected error"),
+        Err(_) => panic!("Not the expected error"),
+        Ok(_) => panic!("Expected Err(CommandBusError) but got Ok(_)"),
     }
 }

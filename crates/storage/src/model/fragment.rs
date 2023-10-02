@@ -1,6 +1,10 @@
 use super::review::ReviewAction;
 use crate::Entity;
-use commons::{id::Id, time::DateTime};
+use commons::{
+    fragment::{Content, End},
+    id::Id,
+    time::DateTime,
+};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use derive_setters::Setters;
@@ -44,7 +48,7 @@ pub struct Fragment {
     #[setters(skip)]
     author_id: Id,
 
-    content: String,
+    content: Content,
 
     #[builder(default)]
     state: FragmentState,
@@ -59,7 +63,7 @@ pub struct Fragment {
 
     #[sqlx(rename = "_end")]
     #[builder(default)]
-    end: bool,
+    end: End,
 
     #[setters(skip)]
     created_at: DateTime,
@@ -79,12 +83,24 @@ impl Fragment {
         self.author_id == author.into()
     }
 
+    pub fn is_publishable(&self) -> bool {
+        if self.is_fork() {
+            return self.is_approved();
+        }
+
+        return self.is_draft();
+    }
+
+    pub fn is_submittable(&self) -> bool {
+        self.is_fork() && (self.is_draft() || self.is_waiting_changes())
+    }
+
     pub fn is_published(&self) -> bool {
         self.state == FragmentState::Published
     }
 
-    pub fn is_waiting_review(&self) -> bool {
-        self.state == FragmentState::WaitingReview
+    pub fn is_submitted(&self) -> bool {
+        self.state == FragmentState::Submitted
     }
 
     pub fn is_editable(&self) -> bool {
@@ -118,7 +134,7 @@ pub enum FragmentState {
     #[default]
     Draft,
     Published,
-    WaitingReview,
+    Submitted,
     Rejected,
     Approved,
     WaitingChanges,
@@ -127,7 +143,7 @@ pub enum FragmentState {
 impl From<ReviewAction> for FragmentState {
     fn from(value: ReviewAction) -> Self {
         match value {
-            ReviewAction::Approve => FragmentState::Published,
+            ReviewAction::Approve => FragmentState::Approved,
             ReviewAction::Reject => FragmentState::Rejected,
             ReviewAction::RequestChanges => FragmentState::WaitingChanges,
         }

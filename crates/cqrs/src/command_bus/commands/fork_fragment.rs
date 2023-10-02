@@ -1,19 +1,23 @@
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentForkedEvent;
+use commons::actor::ActorType;
+use commons::fragment::{Content, End};
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
+use storage::active::user::ActiveUser;
 use storage::{
     active::fragment::ActiveFragment,
-    model::fragment::{Fragment, FragmentBuilder, FragmentState},
+    model::fragment::{Fragment, FragmentBuilder},
 };
 use tap::TapFallible;
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
+#[builder(setter(into))]
 pub struct ForkFragmentCommand {
     fragment_id: Id,
     parent_fragment_id: Id,
-    content: String,
-    end: bool,
+    content: Content,
+    end: End,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -62,26 +66,31 @@ impl Command for ForkFragmentCommand {
             );
         }
 
-        if *parent_frag.end() {
+        if End::Yes == *parent_frag.end() {
             return Err(ForkFragmentCommandError::Forbidden("Cannot fork an end fragment").into());
         }
 
-        // if !user.is_friend(ctx.pool(), *parent_frag.author_id()).await? {
-        //     return Err(ForkFragmentCommandError::Forbidden(
-        //         "You must be friend with the fragment author",
-        //     )
-        //     .into());
-        // }
+        let friend = parent_frag
+            .author(ctx.pool())
+            .await?
+            .is_friend(ctx.pool(), user)
+            .await?;
 
+        if !friend {
+            return Err(
+                ForkFragmentCommandError::Forbidden("You must be fragment author friend").into(),
+            );
+        }
+
+        let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
             .id(self.fragment_id)
             .author_id(user)
             .content(self.content.clone())
             .parent_id(Some(self.parent_fragment_id))
-            .state(FragmentState::Draft)
             .end(self.end)
-            .created_at(ctx.clock().now())
-            .last_modified_at(ctx.clock().now())
+            .created_at(now)
+            .last_modified_at(now)
             .path(parent_frag.path().append(self.parent_fragment_id))
             .build()
             .tap_err(|e| tracing::error!("Failed to build fragment: {e}"))
@@ -93,8 +102,7 @@ impl Command for ForkFragmentCommand {
     }
 
     fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        ActorType::User == actor.actor_type()
     }
 }
 

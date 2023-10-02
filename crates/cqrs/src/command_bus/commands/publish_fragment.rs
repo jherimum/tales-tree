@@ -2,6 +2,7 @@ use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentPublishedEvent;
 use anyhow::Context;
+use commons::actor::ActorType;
 use commons::{commands::CommandType, id::Id};
 use storage::{
     active::fragment::ActiveFragment,
@@ -10,6 +11,7 @@ use storage::{
 use tap::TapFallible;
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
+#[builder(setter(into))]
 pub struct PublishFragmentCommand {
     pub fragment_id: Id,
 }
@@ -35,7 +37,7 @@ impl Command for PublishFragmentCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        todo!()
+        ActorType::User == actor.actor_type()
     }
 
     async fn handle<'ctx>(
@@ -58,30 +60,17 @@ impl Command for PublishFragmentCommand {
             .into());
         }
 
-        match (fragment.state(), fragment.is_fork()) {
-            (FragmentState::Draft, false) => Ok(()),
-            (FragmentState::Approved, true) => Ok(()),
-            (FragmentState::Draft, true) => Err(PublishFragmentCommandError::InvalidState(
-                "forks needs approval to be published",
-            )),
-            (FragmentState::Published, _) => Err(PublishFragmentCommandError::InvalidState(
-                "fragment is already published",
-            )),
-            (_, true) => Err(PublishFragmentCommandError::InvalidState(
-                "Fork can not be published",
-            )),
-            (_, false) => Err(PublishFragmentCommandError::InvalidState(
-                "Fragment can not be published",
-            )),
-        }?;
+        if fragment.is_publishable() {
+            return Ok(fragment
+                .set_state(FragmentState::Published)
+                .set_last_modified_at(ctx.clock().now())
+                .update(ctx.tx().as_mut())
+                .await
+                .map(|f| Some(f.into()))
+                .context(format!("Failed to update fragment [{}]", self.fragment_id))?);
+        }
 
-        Ok(fragment
-            .set_state(FragmentState::Published)
-            .set_last_modified_at(ctx.clock().now())
-            .update(ctx.tx().as_mut())
-            .await
-            .map(|f| Some(f.into()))
-            .context(format!("Failed to update fragment [{}]", self.fragment_id))?)
+        Err(PublishFragmentCommandError::InvalidState("fragment is not publishable").into())
     }
 }
 

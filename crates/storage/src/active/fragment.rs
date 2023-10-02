@@ -1,10 +1,19 @@
 use commons::id::Id;
 use sqlx::{query_as, PgExecutor};
 
-use crate::{model::fragment::Fragment, StorageError};
+use crate::{
+    model::{fragment::Fragment, user::User},
+    StorageError,
+};
+
+use super::user::ActiveUser;
 
 #[async_trait::async_trait]
 impl ActiveFragment for Fragment {
+    async fn author<'e, E: PgExecutor<'e>>(&self, exec: E) -> Result<User, StorageError> {
+        Ok(User::find(exec, self.author_id()).await?.unwrap())
+    }
+
     async fn get_parent<'e, E: PgExecutor<'e>>(
         &self,
         exec: E,
@@ -73,6 +82,8 @@ impl ActiveFragment for Fragment {
 
 #[async_trait::async_trait]
 pub trait ActiveFragment {
+    async fn author<'e, E: PgExecutor<'e>>(&self, exec: E) -> Result<User, StorageError>;
+
     async fn get_parent<'e, E: PgExecutor<'e>>(
         &self,
         exec: E,

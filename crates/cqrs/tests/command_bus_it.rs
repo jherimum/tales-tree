@@ -40,7 +40,7 @@ async fn test_command_bus(pool: PgPool) {
         user,
         CreateFragmentCommandBuilder::default()
             .fragment_id(Id::new())
-            .content("First tale".to_string())
+            .content("First tale")
             .build()
             .unwrap(),
     )

@@ -1,4 +1,11 @@
-use commons::{actor::Actor, events::EventType, id::Id, time::DateTime};
+use commons::{
+    actor::Actor,
+    events::EventType,
+    fragment::{Content, End},
+    id::Id,
+    review::Comment,
+    time::DateTime,
+};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -6,6 +13,7 @@ use std::fmt::Debug;
 use storage::model::review::ReviewAction;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct ForkSubmittedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
@@ -25,11 +33,12 @@ impl Event for ForkSubmittedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct FragmentCreatedEvent {
     fragment_id: Id,
     user_id: Id,
-    content: String,
-    end: bool,
+    content: Content,
+    end: End,
     timestamp: DateTime,
 }
 
@@ -46,6 +55,7 @@ impl Event for FragmentCreatedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct FragmentDislikedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
@@ -65,11 +75,12 @@ impl Event for FragmentDislikedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct FragmentForkedEvent {
     pub fragment_id: Id,
     pub user_id: Id,
-    pub content: String,
-    pub end: bool,
+    pub content: Content,
+    pub end: End,
     pub parent_fragment_id: Id,
     pub timestamp: DateTime,
 }
@@ -87,6 +98,7 @@ impl Event for FragmentForkedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct FragmentPublishedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
@@ -110,8 +122,8 @@ impl Event for FragmentPublishedEvent {
 pub struct FragmentUpdatedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
-    pub content: String,
-    pub end: bool,
+    pub content: Content,
+    pub end: End,
     pub actor: Actor,
 }
 
@@ -128,10 +140,11 @@ impl Event for FragmentUpdatedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct FragmentForkReviewedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
-    pub comment: Option<String>,
+    pub comment: Option<Comment>,
     pub action: ReviewAction,
     pub actor: Actor,
 }
@@ -149,6 +162,7 @@ impl Event for FragmentForkReviewedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct FragmentLikedEvent {
     pub fragment_id: Id,
     pub user_id: Id,
@@ -168,6 +182,7 @@ impl Event for FragmentLikedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct UserFollowedEvent {
     pub follower_id: Id,
     pub followee_id: Id,
@@ -187,6 +202,7 @@ impl Event for UserFollowedEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Builder, Getters)]
+#[builder(setter(into))]
 pub struct UserUnfollowedEvent {
     pub follower_id: Id,
     pub followee_id: Id,
