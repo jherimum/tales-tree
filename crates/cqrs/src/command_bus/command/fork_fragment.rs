@@ -3,7 +3,7 @@ use crate::command_bus::bus::Ctx;
 use crate::command_bus::error::CommandBusError;
 use crate::events::FragmentForkedEvent;
 use commons::actor::ActorType;
-use commons::fragment::{Content, End};
+use commons::fragment::Content;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
 use storage::active::user::ActiveUser;
 use storage::{
@@ -18,7 +18,7 @@ pub struct ForkFragmentCommand {
     fragment_id: Id,
     parent_fragment_id: Id,
     content: Content,
-    end: End,
+    end: bool,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -67,7 +67,7 @@ impl Command for ForkFragmentCommand {
             );
         }
 
-        if parent_frag.end().yes() {
+        if *parent_frag.end() {
             return Err(ForkFragmentCommandError::Forbidden("Cannot fork an end fragment").into());
         }
 

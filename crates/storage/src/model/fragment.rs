@@ -1,10 +1,6 @@
 use super::review::ReviewAction;
 use crate::Entity;
-use commons::{
-    fragment::{Content, End},
-    id::Id,
-    time::DateTime,
-};
+use commons::{fragment::Content, id::Id, time::DateTime};
 use derive_builder::Builder;
 use derive_getters::Getters;
 use derive_setters::Setters;
@@ -63,7 +59,7 @@ pub struct Fragment {
 
     #[sqlx(rename = "_end")]
     #[builder(default)]
-    end: End,
+    end: bool,
 
     #[setters(skip)]
     created_at: DateTime,

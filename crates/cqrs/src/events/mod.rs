@@ -1,10 +1,5 @@
 use commons::{
-    actor::Actor,
-    events::EventType,
-    fragment::{Content, End},
-    id::Id,
-    review::Comment,
-    time::DateTime,
+    actor::Actor, events::EventType, fragment::Content, id::Id, review::Comment, time::DateTime,
 };
 use derive_builder::Builder;
 use derive_getters::Getters;
@@ -38,7 +33,7 @@ pub struct FragmentCreatedEvent {
     fragment_id: Id,
     user_id: Id,
     content: Content,
-    end: End,
+    end: bool,
     timestamp: DateTime,
 }
 
@@ -80,7 +75,7 @@ pub struct FragmentForkedEvent {
     pub fragment_id: Id,
     pub user_id: Id,
     pub content: Content,
-    pub end: End,
+    pub end: bool,
     pub parent_fragment_id: Id,
     pub timestamp: DateTime,
 }
@@ -123,7 +118,7 @@ pub struct FragmentUpdatedEvent {
     pub fragment_id: Id,
     pub timestamp: DateTime,
     pub content: Content,
-    pub end: End,
+    pub end: bool,
     pub actor: Actor,
 }
 

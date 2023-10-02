@@ -17,30 +17,3 @@ impl From<&str> for Content {
         Self(String::from(value))
     }
 }
-
-#[derive(Clone, Debug, PartialEq, Eq, Type, Serialize, Deserialize, Default, Copy)]
-pub enum End {
-    Yes,
-    #[default]
-    No,
-}
-
-impl End {
-    pub fn yes(&self) -> bool {
-        Self::Yes == *self
-    }
-
-    pub fn no(&self) -> bool {
-        Self::No == *self
-    }
-}
-
-impl From<bool> for End {
-    fn from(value: bool) -> Self {
-        if value {
-            Self::Yes
-        } else {
-            Self::No
-        }
-    }
-}
