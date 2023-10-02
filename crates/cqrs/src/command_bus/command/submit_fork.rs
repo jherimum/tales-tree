@@ -1,8 +1,6 @@
+use super::Command;
 use crate::{
-    command_bus::{
-        bus::{Command, Ctx},
-        error::CommandBusError,
-    },
+    command_bus::{bus::Ctx, error::CommandBusError},
     events::ForkSubmittedEvent,
 };
 use commons::{

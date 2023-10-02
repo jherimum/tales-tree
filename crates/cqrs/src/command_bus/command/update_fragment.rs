@@ -1,5 +1,5 @@
 use crate::command_bus::bus::Ctx;
-use crate::command_bus::{bus::Command, error::CommandBusError};
+use crate::command_bus::error::CommandBusError;
 use crate::events::FragmentUpdatedEvent;
 use commons::actor::{Actor, ActorType};
 use commons::fragment::{Content, End};
@@ -7,6 +7,8 @@ use commons::{commands::CommandType, id::Id};
 use derive_getters::Getters;
 use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
 use tap::TapFallible;
+
+use super::Command;
 
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize, Getters)]
 #[builder(setter(into))]

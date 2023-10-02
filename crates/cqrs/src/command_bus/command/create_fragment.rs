@@ -1,5 +1,5 @@
 use crate::command_bus::bus::Ctx;
-use crate::command_bus::{bus::Command, error::CommandBusError};
+use crate::command_bus::error::CommandBusError;
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
 use commons::fragment::Content;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
@@ -11,6 +11,8 @@ use storage::{
     model::fragment::{Fragment, FragmentBuilder},
 };
 use tap::TapFallible;
+
+use super::Command;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreateFragmentCommandError {}

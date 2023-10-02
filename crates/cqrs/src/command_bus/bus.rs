@@ -1,14 +1,13 @@
-use super::error::CommandBusError;
+use super::{command::Command, error::CommandBusError};
 use crate::events::Event;
 use commons::{
     actor::ActorTrait,
-    commands::CommandType,
     id::{Id, IdGenerator},
     time::{Clock, DateTime},
 };
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
-use std::{fmt::Debug, marker::PhantomData, sync::Arc};
+use std::{marker::PhantomData, sync::Arc};
 use storage::{
     active::{event::ActiveEvent, task::ActiveTask},
     model::{
@@ -267,20 +266,4 @@ impl<'ctx> Ctx<'ctx> {
     pub fn ids(&self) -> &dyn IdGenerator {
         self.ids
     }
-}
-
-#[async_trait::async_trait]
-pub trait Command: Send + Sync + Debug {
-    type Event: Event;
-
-    fn command_type(&self) -> CommandType;
-
-    async fn handle<'ctx>(
-        &self,
-        ctx: &mut Ctx<'ctx>,
-    ) -> Result<Option<Self::Event>, CommandBusError>;
-
-    fn supports<A>(&self, actor: &A) -> bool
-    where
-        A: ActorTrait;
 }

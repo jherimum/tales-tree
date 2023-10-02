@@ -6,7 +6,7 @@ use cqrs::{
     command_bus::{
         bus::CommandBus,
         bus::SimpleCommandBus,
-        commands::create_fragment::{CreateFragmentCommand, CreateFragmentCommandBuilder},
+        command::create_fragment::{CreateFragmentCommand, CreateFragmentCommandBuilder},
     },
     events::FragmentCreatedEvent,
 };

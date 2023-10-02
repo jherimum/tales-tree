@@ -1,5 +1,6 @@
+use super::Command;
 use crate::command_bus::bus::Ctx;
-use crate::command_bus::{bus::Command, error::CommandBusError};
+use crate::command_bus::error::CommandBusError;
 use crate::events::UserUnfollowedEvent;
 use commons::{commands::CommandType, id::Id};
 use storage::{active::follow::ActiveFollow, model::follow::Follow};

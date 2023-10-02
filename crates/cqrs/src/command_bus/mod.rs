@@ -1,3 +1,3 @@
 pub mod bus;
-pub mod commands;
+pub mod command;
 pub mod error;
