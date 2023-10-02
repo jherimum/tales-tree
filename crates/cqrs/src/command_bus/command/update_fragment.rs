@@ -47,20 +47,23 @@ impl Command for UpdateFragmentCommand {
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
 
-        let fragment = Fragment::find(ctx.pool(), &self.fragment_id).await?.ok_or(
-            UpdateFragmentCommandError::FragmentNotFound(self.fragment_id),
-        )?;
+        let fragment = Fragment::find(ctx.pool(), &self.fragment_id)
+            .await
+            .tap_err(|e| tracing::error!("Failed to find fragment: {e}"))?
+            .ok_or(UpdateFragmentCommandError::FragmentNotFound(
+                self.fragment_id,
+            ))?;
 
-        if self.end && !fragment.is_fork() {
-            return Err(UpdateFragmentCommandError::NonEndabledFragment(self.fragment_id).into());
+        if !fragment.is_editable() {
+            return Err(UpdateFragmentCommandError::NonEditableFragment(self.fragment_id).into());
         }
 
         if !fragment.is_author(user) {
             return Err(UpdateFragmentCommandError::UserWithoutPermission(user).into());
         }
 
-        if !fragment.is_editable() {
-            return Err(UpdateFragmentCommandError::NonEditableFragment(self.fragment_id).into());
+        if self.end && !fragment.is_fork() {
+            return Err(UpdateFragmentCommandError::NonEndabledFragment(self.fragment_id).into());
         }
 
         Ok(fragment
@@ -69,7 +72,8 @@ impl Command for UpdateFragmentCommand {
             .set_end(self.end)
             .update(ctx.tx().as_mut())
             .await
-            .map(|f| Some(f.into()))
+            .map(Into::into)
+            .map(Some)
             .tap_err(|e| {
                 tracing::error!("Failed to update fragment [{:?}]: {e}", self.fragment_id)
             })?)

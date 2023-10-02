@@ -3,7 +3,7 @@ use crate::command_bus::bus::Ctx;
 use crate::command_bus::error::CommandBusError;
 use crate::events::FragmentPublishedEvent;
 use anyhow::Context;
-use commons::actor::ActorType;
+use commons::actor::{Actor, ActorType};
 use commons::{commands::CommandType, id::Id};
 use storage::{
     active::fragment::ActiveFragment,
@@ -62,16 +62,19 @@ impl Command for PublishFragmentCommand {
         }
 
         if fragment.is_publishable() {
-            return Ok(fragment
-                .set_state(FragmentState::Published)
-                .set_last_modified_at(ctx.clock().now())
-                .update(ctx.tx().as_mut())
-                .await
-                .map(|f| Some(f.into()))
-                .context(format!("Failed to update fragment [{}]", self.fragment_id))?);
+            return Err(
+                PublishFragmentCommandError::InvalidState("fragment is not publishable").into(),
+            );
         }
 
-        Err(PublishFragmentCommandError::InvalidState("fragment is not publishable").into())
+        Ok(fragment
+            .set_state(FragmentState::Published)
+            .set_last_modified_at(ctx.clock().now())
+            .update(ctx.tx().as_mut())
+            .await
+            .map(Into::into)
+            .map(Some)
+            .tap_err(|e| tracing::error!("Failed to update fragment: {e}"))?)
     }
 }
 
@@ -80,7 +83,7 @@ impl From<Fragment> for FragmentPublishedEvent {
         Self {
             fragment_id: *value.id(),
             timestamp: *value.last_modified_at(),
-            actor: commons::actor::Actor::User(*value.author_id()),
+            actor: Actor::User(*value.author_id()),
         }
     }
 }

@@ -1,3 +1,4 @@
+use super::Command;
 use crate::command_bus::bus::Ctx;
 use crate::command_bus::error::CommandBusError;
 use crate::events::{FragmentCreatedEvent, FragmentCreatedEventBuilder};
@@ -11,8 +12,6 @@ use storage::{
     model::fragment::{Fragment, FragmentBuilder},
 };
 use tap::TapFallible;
-
-use super::Command;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CreateFragmentCommandError {}
@@ -47,7 +46,8 @@ impl Command for CreateFragmentCommand {
             .map_err(anyhow::Error::from)?
             .save(ctx.tx().as_mut())
             .await
-            .map(|f| Some(From::from(&f)))
+            .map(Into::into)
+            .map(Some)
             .tap_err(|e| tracing::error!("Failed to save fragment:{e}"))?)
     }
 
@@ -56,8 +56,8 @@ impl Command for CreateFragmentCommand {
     }
 }
 
-impl From<&Fragment> for FragmentCreatedEvent {
-    fn from(value: &Fragment) -> Self {
+impl From<Fragment> for FragmentCreatedEvent {
+    fn from(value: Fragment) -> Self {
         FragmentCreatedEventBuilder::default()
             .fragment_id(*value.id())
             .user_id(*value.author_id())

@@ -4,8 +4,9 @@ use crate::{
     events::ForkSubmittedEvent,
 };
 use commons::{
-    actor::{ActorTrait, ActorType},
+    actor::{Actor, ActorTrait, ActorType},
     commands::CommandType,
+    fragment,
     id::Id,
 };
 use storage::{
@@ -47,32 +48,38 @@ impl Command for SubmitForkCommand {
         &self,
         ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
-        let fork = Fragment::find(ctx.pool(), &self.fragment_id)
+        let fragment = Fragment::find(ctx.pool(), &self.fragment_id)
             .await
             .tap_err(|e| tracing::error!("Failed to find fork: {e:?}"))?
             .ok_or(SubmitForkCommandError::ForkNotFound(self.fragment_id))?;
 
-        if !fork.is_author(ctx.actor().id().unwrap()) {
+        if !fragment.is_author(ctx.actor().id().unwrap()) {
             return Err(
                 SubmitForkCommandError::Forbidden("Only the fork author can submit it").into(),
             );
         }
 
-        if fork.is_submittable() {
-            let fragment = fork
-                .set_state(FragmentState::Submitted)
-                .set_last_modified_at(ctx.clock().now())
-                .save(ctx.tx().as_mut())
-                .await
-                .tap_err(|e| tracing::error!("Failed to save fork: {e:?}"))?;
-
-            return Ok(Some(ForkSubmittedEvent {
-                fragment_id: self.fragment_id,
-                timestamp: *fragment.last_modified_at(),
-                actor: ctx.actor().actor(),
-            }));
+        if !fragment.is_submittable() {
+            return Err(SubmitForkCommandError::InvalidState("Fork can not be submitted").into());
         }
 
-        Err(SubmitForkCommandError::InvalidState("Fork can not be submitted").into())
+        Ok(fragment
+            .set_state(FragmentState::Submitted)
+            .set_last_modified_at(ctx.clock().now())
+            .save(ctx.tx().as_mut())
+            .await
+            .tap_err(|e| tracing::error!("Failed to save fork: {e:?}"))
+            .map(Into::into)
+            .map(Some)?)
+    }
+}
+
+impl From<Fragment> for ForkSubmittedEvent {
+    fn from(value: Fragment) -> Self {
+        Self {
+            fragment_id: *value.id(),
+            timestamp: *value.last_modified_at(),
+            actor: Actor::User(*value.author_id()),
+        }
     }
 }
