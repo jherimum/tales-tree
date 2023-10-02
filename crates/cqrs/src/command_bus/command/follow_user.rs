@@ -48,8 +48,7 @@ impl Command for FollowUserCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        actor.actor().is_user()
     }
 }
 

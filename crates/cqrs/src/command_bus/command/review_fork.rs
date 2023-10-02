@@ -97,7 +97,7 @@ impl Command for ReviewForkCommand {
 
 impl From<Review> for FragmentForkReviewedEvent {
     fn from(value: Review) -> Self {
-        FragmentForkReviewedEvent {
+        Self {
             fragment_id: *value.fragment_id(),
             action: *value.action(),
             comment: value.comment().clone(),

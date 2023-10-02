@@ -16,11 +16,11 @@ use sqlx::FromRow;
 pub struct Path(Vec<Id>);
 
 impl Path {
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         Self(Vec::new())
     }
 
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self(Vec::new())
     }
 
@@ -88,7 +88,7 @@ impl Fragment {
             return self.is_approved();
         }
 
-        return self.is_draft();
+        self.is_draft()
     }
 
     pub fn is_submittable(&self) -> bool {
@@ -115,11 +115,11 @@ impl Fragment {
         self.state == FragmentState::Draft
     }
 
-    pub fn is_root(&self) -> bool {
+    pub const fn is_root(&self) -> bool {
         self.parent_id.is_none()
     }
 
-    pub fn is_fork(&self) -> bool {
+    pub const fn is_fork(&self) -> bool {
         self.parent_id.is_some()
     }
 
@@ -143,9 +143,9 @@ pub enum FragmentState {
 impl From<ReviewAction> for FragmentState {
     fn from(value: ReviewAction) -> Self {
         match value {
-            ReviewAction::Approve => FragmentState::Approved,
-            ReviewAction::Reject => FragmentState::Rejected,
-            ReviewAction::RequestChanges => FragmentState::WaitingChanges,
+            ReviewAction::Approve => Self::Approved,
+            ReviewAction::Reject => Self::Rejected,
+            ReviewAction::RequestChanges => Self::WaitingChanges,
         }
     }
 }

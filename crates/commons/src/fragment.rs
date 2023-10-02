@@ -27,11 +27,11 @@ pub enum End {
 
 impl End {
     pub fn yes(&self) -> bool {
-        End::Yes == *self
+        Self::Yes == *self
     }
 
     pub fn no(&self) -> bool {
-        End::No == *self
+        Self::No == *self
     }
 }
 

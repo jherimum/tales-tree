@@ -4,7 +4,7 @@ use crate::{model::task::Task, StorageError};
 
 #[async_trait::async_trait]
 impl ActiveTask for Task {
-    async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Task, StorageError> {
+    async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         Ok(sqlx::query_as(
             r#"
             INSERT INTO tasks 

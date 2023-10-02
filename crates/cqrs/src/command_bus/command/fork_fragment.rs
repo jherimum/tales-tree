@@ -109,7 +109,7 @@ impl Command for ForkFragmentCommand {
 
 impl From<Fragment> for FragmentForkedEvent {
     fn from(value: Fragment) -> Self {
-        FragmentForkedEvent {
+        Self {
             fragment_id: *value.id(),
             user_id: *value.author_id(),
             parent_fragment_id: value.parent_id().unwrap(),

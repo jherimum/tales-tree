@@ -4,7 +4,7 @@ use crate::{model::review::Review, StorageError};
 
 #[async_trait::async_trait]
 impl ActiveReview for Review {
-    async fn save<'e, E: PgExecutor<'e>>(self, _: E) -> Result<Review, StorageError> {
+    async fn save<'e, E: PgExecutor<'e>>(self, _: E) -> Result<Self, StorageError> {
         todo!()
     }
 }

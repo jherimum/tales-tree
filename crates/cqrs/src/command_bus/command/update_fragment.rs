@@ -82,7 +82,7 @@ impl Command for UpdateFragmentCommand {
 
 impl From<Fragment> for FragmentUpdatedEvent {
     fn from(value: Fragment) -> Self {
-        FragmentUpdatedEvent {
+        Self {
             fragment_id: *value.id(),
             content: value.content().clone(),
             timestamp: *value.last_modified_at(),

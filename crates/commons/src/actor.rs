@@ -38,14 +38,14 @@ impl From<&Actor> for ActorType {
 }
 
 impl Actor {
-    pub fn is_user(&self) -> bool {
-        matches!(self, Actor::User(_))
+    pub const fn is_user(&self) -> bool {
+        matches!(self, Self::User(_))
     }
 
-    pub fn id(&self) -> Option<Id> {
+    pub const fn id(&self) -> Option<Id> {
         match self {
-            Actor::User(id) => Some(*id),
-            Actor::System => None,
+            Self::User(id) => Some(*id),
+            Self::System => None,
         }
     }
 }

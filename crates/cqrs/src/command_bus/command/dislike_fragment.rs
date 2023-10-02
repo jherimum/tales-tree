@@ -62,7 +62,6 @@ impl Command for DislikeFragmentCommand {
     }
 
     fn supports<A: ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        actor.actor().is_user()
     }
 }

@@ -77,7 +77,7 @@ impl Command for PublishFragmentCommand {
 
 impl From<Fragment> for FragmentPublishedEvent {
     fn from(value: Fragment) -> Self {
-        FragmentPublishedEvent {
+        Self {
             fragment_id: *value.id(),
             timestamp: *value.last_modified_at(),
             actor: commons::actor::Actor::User(*value.author_id()),

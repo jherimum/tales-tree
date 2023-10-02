@@ -68,14 +68,13 @@ impl Command for LikeFragmentCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        actor.actor().is_user()
     }
 }
 
 impl From<Like> for FragmentLikedEvent {
     fn from(value: Like) -> Self {
-        FragmentLikedEvent {
+        Self {
             fragment_id: *value.fragment_id(),
             user_id: *value.user_id(),
             timestamp: *value.created_at(),

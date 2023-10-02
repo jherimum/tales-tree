@@ -52,7 +52,7 @@ impl ActiveLike for Like {
         .bind(user_id)
         .fetch_optional(exec)
         .await
-        .map_err(|e| e.into())
+        .map_err(Into::into)
     }
 }
 

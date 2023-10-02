@@ -43,7 +43,6 @@ impl Command for UnfollowUserCommand {
     }
 
     fn supports<A: commons::actor::ActorTrait>(&self, actor: &A) -> bool {
-        //actor.is_user()
-        todo!()
+        actor.actor().is_user()
     }
 }

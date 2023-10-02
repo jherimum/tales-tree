@@ -83,7 +83,7 @@ where
             .commnad_data(command.into())
             .actor_type(actor.actor_type())
             .actor_id(actor.id())
-            .scheduled_at(schedule_to.unwrap_or(DateTime::now()))
+            .scheduled_at(schedule_to.unwrap_or_else(DateTime::now))
             .build()
             .map_err(anyhow::Error::from)?
             .save(&self.pool)
@@ -215,7 +215,7 @@ where
             .timestamp(event.timestamp())
             .event_type(event.event_type())
             .event_data(EventData::from(&event))
-            .actor_id(event.actor().id().clone())
+            .actor_id(event.actor().id())
             .actor_type((&event.actor()).into())
             .build()
             .unwrap()

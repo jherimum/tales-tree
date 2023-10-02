@@ -16,7 +16,7 @@ impl ActiveUser for User {
         )
     }
 
-    async fn find<'e, E: PgExecutor<'e>>(exec: E, id: &Id) -> Result<Option<User>, StorageError> {
+    async fn find<'e, E: PgExecutor<'e>>(exec: E, id: &Id) -> Result<Option<Self>, StorageError> {
         Ok(sqlx::query_as("SELECT * FROM users WHERE id = $1")
             .bind(id)
             .fetch_optional(exec)
