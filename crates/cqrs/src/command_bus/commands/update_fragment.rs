@@ -2,7 +2,7 @@ use crate::command_bus::bus::Ctx;
 use crate::command_bus::{bus::Command, error::CommandBusError};
 use crate::events::FragmentUpdatedEvent;
 use commons::actor::{Actor, ActorType};
-use commons::fragment::Content;
+use commons::fragment::{Content, End};
 use commons::{commands::CommandType, id::Id};
 use derive_getters::Getters;
 use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
@@ -13,7 +13,7 @@ use tap::TapFallible;
 pub struct UpdateFragmentCommand {
     fragment_id: Id,
     content: Content,
-    end: bool,
+    end: End,
 }
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -49,7 +49,7 @@ impl Command for UpdateFragmentCommand {
             UpdateFragmentCommandError::FragmentNotFound(self.fragment_id),
         )?;
 
-        if self.end && !fragment.is_fork() {
+        if self.end.yes() && !fragment.is_fork() {
             return Err(UpdateFragmentCommandError::NonEndabledFragment(self.fragment_id).into());
         }
 

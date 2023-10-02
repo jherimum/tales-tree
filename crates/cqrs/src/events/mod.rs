@@ -8,7 +8,7 @@ use commons::{
 };
 use derive_builder::Builder;
 use derive_getters::Getters;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use storage::model::review::ReviewAction;
 
@@ -221,9 +221,7 @@ impl Event for UserUnfollowedEvent {
     }
 }
 
-pub trait Event:
-    Serialize + DeserializeOwned + Debug + Clone + PartialEq + Eq + Send + Sync
-{
+pub trait Event: Send + Sync + Debug {
     fn event_type(&self) -> EventType;
     fn data(&self) -> &Self {
         self

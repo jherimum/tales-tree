@@ -66,7 +66,7 @@ impl Command for ForkFragmentCommand {
             );
         }
 
-        if End::Yes == *parent_frag.end() {
+        if parent_frag.end().yes() {
             return Err(ForkFragmentCommandError::Forbidden("Cannot fork an end fragment").into());
         }
 

@@ -8,7 +8,7 @@ use commons::{
 };
 use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, marker::PhantomData, sync::Arc};
 use storage::{
     active::{event::ActiveEvent, task::ActiveTask},
     model::{
@@ -31,14 +31,16 @@ pub trait CommandBus {
         C: Command + Serialize,
         A: ActorTrait + 'static;
 
-    async fn async_execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
+    async fn async_execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
-        C: Command + 'static,
+        C: Command<Event = EV> + 'static,
+        EV: Event + Serialize + 'static,
         A: ActorTrait + 'static + Clone;
 
-    async fn execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
+    async fn execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
-        C: Command,
+        EV: Event + Serialize,
+        C: Command<Event = EV>,
         A: ActorTrait + Clone + 'static;
 }
 
@@ -90,9 +92,10 @@ where
             .map(|t| *t.id())?)
     }
 
-    async fn async_execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
+    async fn async_execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
-        C: Command + 'static,
+        C: Command<Event = EV> + 'static,
+        EV: Event + Serialize + 'static,
         A: ActorTrait + 'static + Clone,
     {
         let executor = InnerExecutor::new(
@@ -107,10 +110,11 @@ where
         Ok(())
     }
 
-    async fn execute<C, A>(&self, actor: A, command: C) -> Result<(), CommandBusError>
+    async fn execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
-        C: Command,
+        C: Command<Event = EV>,
         A: ActorTrait + Clone + 'static,
+        EV: Event + Serialize,
     {
         InnerExecutor::new(
             self.pool.clone(),
@@ -124,20 +128,22 @@ where
     }
 }
 
-struct InnerExecutor<C, A, CL, I> {
+struct InnerExecutor<C, A, CL, I, EV> {
     pool: PgPool,
     actor: A,
     command: C,
     clock: Arc<CL>,
     ids: Arc<I>,
+    ev: PhantomData<EV>,
 }
 
-impl<C, A, CL, I> InnerExecutor<C, A, CL, I>
+impl<C, A, CL, I, EV> InnerExecutor<C, A, CL, I, EV>
 where
-    C: Command,
+    C: Command<Event = EV>,
     A: ActorTrait + Clone + 'static,
     CL: Clock + Send + Sync,
     I: IdGenerator + Send + Sync,
+    EV: Event + Serialize,
 {
     pub fn new(pool: PgPool, actor: A, command: C, clock: Arc<CL>, ids: Arc<I>) -> Self {
         Self {
@@ -146,6 +152,7 @@ where
             command,
             clock,
             ids,
+            ev: PhantomData::<EV>,
         }
     }
 
@@ -199,10 +206,10 @@ where
         }
     }
 
-    async fn save_event<'ctx>(
+    async fn save_event<'ctx, E: Event + Serialize>(
         &self,
         ctx: &mut Ctx<'ctx>,
-        event: impl Event,
+        event: E,
     ) -> Result<DbEvent, StorageError> {
         DbEventBuilder::default()
             .id(ctx.ids().new_id())

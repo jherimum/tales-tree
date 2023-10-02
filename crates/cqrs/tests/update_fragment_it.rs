@@ -21,6 +21,7 @@ use cqrs::{
 
 use ::commons::{
     actor::ActorTrait,
+    fragment::End,
     id::{Id, MockIdGenerator},
     time::{DateTime, MockClock},
 };
@@ -36,7 +37,7 @@ fn test_success_draft_update(pool: PgPool) {
     const NEW_CONTENT: &str = "new content";
 
     let user = create_user(&pool).await;
-    let draft = create_draft(&pool, &user, OLD_CONTENT, false).await;
+    let draft = create_draft(&pool, &user, OLD_CONTENT, End::No).await;
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*draft.id())
@@ -92,7 +93,7 @@ fn test_success_draft_update(pool: PgPool) {
 #[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_actor_not_author(pool: PgPool) {
     let author = create_user(&pool).await;
-    let draft = create_draft(&pool, &author, "content", false).await;
+    let draft = create_draft(&pool, &author, "content", End::No).await;
     let other_user = create_user(&pool).await;
 
     let command = UpdateFragmentCommandBuilder::default()
@@ -119,7 +120,7 @@ fn test_actor_not_author(pool: PgPool) {
 #[sqlx::test(migrator = "storage::MIGRATOR")]
 fn test_non_editable_fragment(pool: PgPool) {
     let author = create_user(&pool).await;
-    let published = create_published(&pool, &author, "content", false).await;
+    let published = create_published(&pool, &author, "content", End::No).await;
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*published.id())

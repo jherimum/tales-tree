@@ -25,6 +25,16 @@ pub enum End {
     No,
 }
 
+impl End {
+    pub fn yes(&self) -> bool {
+        End::Yes == *self
+    }
+
+    pub fn no(&self) -> bool {
+        End::No == *self
+    }
+}
+
 impl From<bool> for End {
     fn from(value: bool) -> Self {
         if value {

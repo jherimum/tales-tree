@@ -36,7 +36,7 @@ async fn test_command_bus(pool: PgPool) {
         Arc::new(MockIdGenerator::default()),
     );
 
-    cb.execute::<CreateFragmentCommand, _>(
+    cb.execute::<CreateFragmentCommand, _, _>(
         user,
         CreateFragmentCommandBuilder::default()
             .fragment_id(Id::new())

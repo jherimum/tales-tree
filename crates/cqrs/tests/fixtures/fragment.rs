@@ -1,4 +1,4 @@
-use commons::{id::Id, time::DateTime};
+use commons::{fragment::End, id::Id, time::DateTime};
 use sqlx::PgPool;
 use storage::{
     active::fragment::ActiveFragment,
@@ -8,7 +8,7 @@ use storage::{
     },
 };
 
-pub async fn create_draft(pool: &PgPool, user: &User, content: &str, end: bool) -> Fragment {
+pub async fn create_draft(pool: &PgPool, user: &User, content: &str, end: End) -> Fragment {
     FragmentBuilder::default()
         .id(Id::new())
         .content(String::from(content))
@@ -26,7 +26,7 @@ pub async fn create_draft(pool: &PgPool, user: &User, content: &str, end: bool) 
         .unwrap()
 }
 
-pub async fn create_published(pool: &PgPool, user: &User, content: &str, end: bool) -> Fragment {
+pub async fn create_published(pool: &PgPool, user: &User, content: &str, end: End) -> Fragment {
     FragmentBuilder::default()
         .id(Id::new())
         .content(String::from(content))
