@@ -44,24 +44,20 @@ pub trait CommandBus {
 }
 
 #[derive(Clone)]
-pub struct SimpleCommandBus<CL, I> {
+pub struct SimpleCommandBus {
     pool: PgPool,
-    clock: Arc<CL>,
-    ids: Arc<I>,
+    clock: Arc<dyn Clock>,
+    ids: Arc<dyn IdGenerator>,
 }
 
-impl<CL, I> SimpleCommandBus<CL, I> {
-    pub fn new(pool: PgPool, clock: Arc<CL>, ids: Arc<I>) -> Self {
+impl SimpleCommandBus {
+    pub fn new(pool: PgPool, clock: Arc<dyn Clock>, ids: Arc<dyn IdGenerator>) -> Self {
         Self { pool, clock, ids }
     }
 }
 
 #[async_trait::async_trait]
-impl<CL, I> CommandBus for SimpleCommandBus<CL, I>
-where
-    CL: Clock + Send + Sync + 'static,
-    I: IdGenerator + Send + Sync + 'static,
-{
+impl CommandBus for SimpleCommandBus {
     async fn dispatch<C, A>(
         &self,
         actor: A,
@@ -127,24 +123,28 @@ where
     }
 }
 
-struct InnerExecutor<C, A, CL, I, EV> {
+struct InnerExecutor<C, A, EV> {
     pool: PgPool,
     actor: A,
     command: C,
-    clock: Arc<CL>,
-    ids: Arc<I>,
+    clock: Arc<dyn Clock>,
+    ids: Arc<dyn IdGenerator>,
     ev: PhantomData<EV>,
 }
 
-impl<C, A, CL, I, EV> InnerExecutor<C, A, CL, I, EV>
+impl<C, A, EV> InnerExecutor<C, A, EV>
 where
     C: Command<Event = EV>,
     A: ActorTrait + Clone + 'static,
-    CL: Clock + Send + Sync,
-    I: IdGenerator + Send + Sync,
     EV: Event + Serialize,
 {
-    pub fn new(pool: PgPool, actor: A, command: C, clock: Arc<CL>, ids: Arc<I>) -> Self {
+    pub fn new(
+        pool: PgPool,
+        actor: A,
+        command: C,
+        clock: Arc<dyn Clock>,
+        ids: Arc<dyn IdGenerator>,
+    ) -> Self {
         Self {
             pool,
             actor,

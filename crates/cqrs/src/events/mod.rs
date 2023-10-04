@@ -180,7 +180,7 @@ impl Event for FragmentLikedEvent {
 #[builder(setter(into))]
 pub struct UserFollowedEvent {
     pub follower_id: Id,
-    pub followee_id: Id,
+    pub following_id: Id,
     pub timestamp: DateTime,
 }
 
@@ -192,7 +192,7 @@ impl Event for UserFollowedEvent {
         self.timestamp
     }
     fn actor(&self) -> Actor {
-        Actor::User(self.followee_id)
+        Actor::User(self.following_id)
     }
 }
 
@@ -200,7 +200,7 @@ impl Event for UserFollowedEvent {
 #[builder(setter(into))]
 pub struct UserUnfollowedEvent {
     pub follower_id: Id,
-    pub followee_id: Id,
+    pub following_id: Id,
     pub timestamp: DateTime,
 }
 
@@ -212,7 +212,7 @@ impl Event for UserUnfollowedEvent {
         self.timestamp
     }
     fn actor(&self) -> Actor {
-        Actor::User(self.followee_id)
+        Actor::User(self.following_id)
     }
 }
 

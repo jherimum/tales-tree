@@ -1727,9 +1727,13 @@ name = "rest"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "anyhow",
+ "async-trait",
  "commons",
  "cqrs",
+ "serde",
  "storage",
+ "url",
 ]
 
 [[package]]
@@ -2534,6 +2538,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]

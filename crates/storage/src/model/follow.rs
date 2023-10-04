@@ -9,7 +9,7 @@ use crate::Entity;
 #[builder(setter(into))]
 pub struct Follow {
     follower_id: Id,
-    followee_id: Id,
+    following_id: Id,
     created_at: DateTime,
 }
 
@@ -17,6 +17,6 @@ impl Entity for Follow {
     type Id = (Id, Id);
 
     fn id(&self) -> Self::Id {
-        (self.follower_id, self.followee_id)
+        (self.follower_id, self.following_id)
     }
 }

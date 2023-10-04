@@ -14,8 +14,8 @@ use super::Command;
 #[builder(setter(into))]
 pub struct UpdateFragmentCommand {
     fragment_id: Id,
-    content: Content,
-    end: bool,
+    content: Option<Content>,
+    end: Option<bool>,
 }
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -62,14 +62,14 @@ impl Command for UpdateFragmentCommand {
             return Err(UpdateFragmentCommandError::UserWithoutPermission(user).into());
         }
 
-        if self.end && !fragment.is_fork() {
-            return Err(UpdateFragmentCommandError::NonEndabledFragment(self.fragment_id).into());
-        }
+        // if self.end && !fragment.is_fork() {
+        //     return Err(UpdateFragmentCommandError::NonEndabledFragment(self.fragment_id).into());
+        // }
 
         Ok(fragment
-            .set_content(self.content.clone())
+            .set_content(self.content.clone().unwrap())
             .set_last_modified_at(ctx.clock().now())
-            .set_end(self.end)
+            .set_end(self.end.unwrap())
             .update(ctx.tx().as_mut())
             .await
             .map(Into::into)

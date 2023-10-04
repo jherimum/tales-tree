@@ -9,7 +9,7 @@ use tap::TapFallible;
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 #[builder(setter(into))]
 pub struct UnfollowUserCommand {
-    followee_user_id: Id,
+    following_user_id: Id,
 }
 
 #[async_trait::async_trait]
@@ -25,7 +25,7 @@ impl Command for UnfollowUserCommand {
         ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
-        let actual_follow = Follow::find(ctx.pool(), &user, &self.followee_user_id)
+        let actual_follow = Follow::find(ctx.pool(), &user, &self.following_user_id)
             .await
             .tap_err(|e| tracing::error!("Failed to find follow: {e}"))?;
 
@@ -33,7 +33,7 @@ impl Command for UnfollowUserCommand {
             Some(f) => match f.delete(ctx.tx().as_mut()).await? {
                 true => Ok(Some(UserUnfollowedEvent {
                     follower_id: user,
-                    followee_id: self.followee_user_id,
+                    following_id: self.following_user_id,
                     timestamp: *f.created_at(),
                 })),
                 false => Ok(None),

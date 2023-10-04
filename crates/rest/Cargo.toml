@@ -10,3 +10,7 @@ commons = { path = "../../crates/commons" }
 storage = { path = "../../crates/storage" }
 cqrs = { path = "../../crates/cqrs" }
 actix-web = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+async-trait = { workspace = true }
+url = { workspace = true, features = ["serde"] }

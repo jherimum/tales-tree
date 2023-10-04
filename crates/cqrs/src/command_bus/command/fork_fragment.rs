@@ -15,7 +15,7 @@ use tap::TapFallible;
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 #[builder(setter(into))]
 pub struct ForkFragmentCommand {
-    fragment_id: Id,
+    fork_id: Id,
     parent_fragment_id: Id,
     content: Content,
     end: bool,
@@ -52,7 +52,7 @@ impl Command for ForkFragmentCommand {
                 tracing::error!("Failed to find fragment [{}]: {e}", self.parent_fragment_id)
             })?
             .ok_or(ForkFragmentCommandError::ParentFragmentNotFound(
-                self.fragment_id,
+                self.fork_id,
             ))?;
 
         if !parent_frag.is_published() {
@@ -85,7 +85,7 @@ impl Command for ForkFragmentCommand {
 
         let now = ctx.clock().now();
         Ok(FragmentBuilder::default()
-            .id(self.fragment_id)
+            .id(self.fork_id)
             .author_id(user)
             .content(self.content.clone())
             .parent_id(Some(self.parent_fragment_id))

@@ -12,7 +12,7 @@ use tap::TapFallible;
 #[derive(Debug, derive_builder::Builder, serde::Deserialize, serde::Serialize)]
 #[builder(setter(into))]
 pub struct FollowUserCommand {
-    followee_user_id: Id,
+    following_user_id: Id,
 }
 
 #[async_trait::async_trait]
@@ -28,7 +28,7 @@ impl Command for FollowUserCommand {
         ctx: &mut Ctx<'ctx>,
     ) -> Result<Option<Self::Event>, CommandBusError> {
         let user = ctx.actor().id().unwrap();
-        let actual_follow = Follow::find(ctx.pool(), &user, &self.followee_user_id)
+        let actual_follow = Follow::find(ctx.pool(), &user, &self.following_user_id)
             .await
             .tap_err(|e| tracing::error!("Failed to find follow: {e}"))?;
 
@@ -38,7 +38,7 @@ impl Command for FollowUserCommand {
 
         Ok(FollowBuilder::default()
             .follower_id(user)
-            .followee_id(self.followee_user_id)
+            .following_id(self.following_user_id)
             .build()
             .map_err(anyhow::Error::from)?
             .save(ctx.tx().as_mut())
@@ -56,7 +56,7 @@ impl From<Follow> for UserFollowedEvent {
     fn from(value: Follow) -> Self {
         UserFollowedEvent {
             follower_id: *value.follower_id(),
-            followee_id: *value.followee_id(),
+            following_id: *value.following_id(),
             timestamp: *value.created_at(),
         }
     }

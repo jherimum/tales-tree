@@ -73,11 +73,11 @@ create table likes(
 
 create table follows(
     follower_id         uuid            not null,
-    followee_id         uuid            not null,
+    following_id         uuid            not null,
     created_at          timestamp       not null,
-    constraint follows_pk primary key (follower_id, followee_id),
+    constraint follows_pk primary key (follower_id, following_id),
     constraint follows_fk_follower foreign key (follower_id) references users(id),
-    constraint follows_fk_followee foreign key (followee_id) references users(id)
+    constraint follows_fk_following foreign key (following_id) references users(id)
 );
 
 

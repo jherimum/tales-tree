@@ -23,6 +23,7 @@ use cqrs::{
 
 use ::commons::{
     actor::ActorTrait,
+    fragment::Content,
     id::{Id, MockIdGenerator},
     time::{DateTime, MockClock},
 };
@@ -42,7 +43,7 @@ fn test_success_draft_update(pool: PgPool) {
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*draft.id())
-        .content(NEW_CONTENT)
+        .content(Some(Content::from(NEW_CONTENT)))
         .end(true)
         .build()
         .unwrap();
@@ -99,7 +100,7 @@ fn test_actor_not_author(pool: PgPool) {
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*draft.id())
-        .content("new content")
+        .content(Some(Content::from("new content")))
         .end(true)
         .build()
         .unwrap();
@@ -125,7 +126,7 @@ fn test_non_editable_fragment(pool: PgPool) {
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(*published.id())
-        .content("new content")
+        .content(Some(Content::from("new content")))
         .end(true)
         .build()
         .unwrap();
@@ -150,7 +151,7 @@ fn test_fragment_not_found(pool: PgPool) {
 
     let command = UpdateFragmentCommandBuilder::default()
         .fragment_id(Id::new())
-        .content("new content")
+        .content(Some(Content::from("new content")))
         .end(true)
         .build()
         .unwrap();
