@@ -20,6 +20,8 @@ pub struct FragmentsRouter;
 impl FragmentsRouter {
     pub const COLLECTION_RESOURCE_NAME: &str = "fragments";
     pub const SINGLE_RESOURCE_NAME: &str = "fragment";
+    pub const PUBLICATION_RESOURCE_NAME: &str = "publication";
+    pub const SUBMIT_RESOURCE_NAME: &str = "submit";
 
     pub async fn create<C: CommandBus>(
         state: Data<AppState<C>>,
@@ -37,6 +39,13 @@ impl FragmentsRouter {
             Ok(_) => ApiResponse::Created(None, Some(ResourceLink::Fragment(id))),
             Err(e) => ApiResponse::InternalServerError(e.into()),
         }
+    }
+
+    pub async fn delete<C: CommandBus>(
+        _: Data<AppState<C>>,
+        UserExtractor(_): UserExtractor,
+    ) -> ApiResponse<()> {
+        ApiResponse::Ok(None)
     }
 
     pub async fn update<C: CommandBus>(

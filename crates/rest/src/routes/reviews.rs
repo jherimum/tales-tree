@@ -3,7 +3,7 @@ use crate::{
     model::{fragments::FragmentPath, reviews::CreateReviewRequest},
     ApiResponse, AppState, ResourceLink,
 };
-use actix_web::web::Json;
+use actix_web::web::{Data, Json};
 use cqrs::command_bus::{bus::CommandBus, command::review_fork::ReviewForkCommandBuilder};
 
 pub struct ReviewsRouter;
@@ -13,7 +13,7 @@ impl ReviewsRouter {
     pub const SINGLE_RESOURCE_NAME: &str = "review";
 
     pub async fn create<C: CommandBus>(
-        state: AppState<C>,
+        state: Data<AppState<C>>,
         fragment_path: FragmentPath,
         Json(payload): Json<CreateReviewRequest>,
         UserExtractor(user): UserExtractor,

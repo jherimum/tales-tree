@@ -9,6 +9,8 @@ use cqrs::command_bus::{
 pub struct FollowingsRouter;
 
 impl FollowingsRouter {
+    const COLLECTION_RESOURCE_NAME: &'static str = "followings";
+
     pub async fn create<C: CommandBus>(
         state: Data<AppState<C>>,
         UserExtractor(user): UserExtractor,

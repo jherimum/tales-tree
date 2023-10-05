@@ -7,7 +7,7 @@ use actix_web::{
 use commons::id::{Id, IdGenerator};
 use cqrs::command_bus::bus::CommandBus;
 use routes::reviews::ReviewsRouter;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, error::Error, sync::Arc};
 use url::Url;
 
@@ -15,7 +15,7 @@ pub mod extractors;
 pub mod model;
 pub mod routes;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct SingleIdPath(Id);
 
 impl From<SingleIdPath> for Id {

@@ -1,12 +1,10 @@
+use super::{bus::Ctx, error::CommandBusError};
+use crate::events::Event;
+use commons::{actor::ActorTrait, commands::CommandType};
 use std::fmt::Debug;
 
-use commons::{actor::ActorTrait, commands::CommandType};
-
-use crate::events::Event;
-
-use super::{bus::Ctx, error::CommandBusError};
-
 pub mod create_fragment;
+pub mod delete_fragment;
 pub mod dislike_fragment;
 pub mod follow_user;
 pub mod fork_fragment;
