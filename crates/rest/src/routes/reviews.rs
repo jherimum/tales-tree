@@ -3,7 +3,7 @@ use crate::{
     links::ResourceLink,
     model::{fragments::FragmentPath, reviews::CreateReviewRequest},
     response::ApiResponse,
-    AppState,
+    server::AppState,
 };
 use actix_web::web::{Data, Json};
 use cqrs::command_bus::command::review_fork::ReviewForkCommandBuilder;

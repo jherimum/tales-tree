@@ -1,3 +1,6 @@
+use commons::configuration::settings::{self, Settings};
+use sqlx::PgPool;
+
 pub mod active;
 pub mod model;
 
@@ -17,4 +20,8 @@ pub trait Entity {
     fn same_as(&self, other: &Self) -> bool {
         self.id() == other.id()
     }
+}
+
+pub fn pool_from_settings(settings: &Settings) -> PgPool {
+    todo!()
 }

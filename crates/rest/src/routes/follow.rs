@@ -1,5 +1,5 @@
 use super::user::UserPath;
-use crate::{extractors::user::UserExtractor, response::ApiResponse, AppState};
+use crate::{extractors::user::UserExtractor, response::ApiResponse, server::AppState};
 use actix_web::web::Data;
 use cqrs::command_bus::command::{
     follow_user::FollowUserCommandBuilder, unfollow_user::UnfollowUserCommandBuilder,

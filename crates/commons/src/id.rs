@@ -6,9 +6,9 @@ pub trait IdGenerator: Send + Sync {
     fn new_id(&self) -> Id;
 }
 
-pub struct DefaultIdGenerator;
+pub struct StdIdGenerator;
 
-impl IdGenerator for DefaultIdGenerator {
+impl IdGenerator for StdIdGenerator {
     fn new_id(&self) -> Id {
         Id::new()
     }

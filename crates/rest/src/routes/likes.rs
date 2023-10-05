@@ -1,6 +1,6 @@
 use crate::{
     extractors::user::UserExtractor, model::fragments::FragmentPath, response::ApiResponse,
-    AppState,
+    server::AppState,
 };
 use actix_web::web::Data;
 use cqrs::command_bus::command::{

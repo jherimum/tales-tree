@@ -5,19 +5,16 @@ pub mod likes;
 pub mod reviews;
 pub mod user;
 
-use crate::{
-    routes::{
-        follow::FollowingsRouter, forks::ForksRouter, fragments::FragmentsRouter,
-        likes::LikesRouter, reviews::ReviewsRouter,
-    },
-    AppState,
+use crate::routes::{
+    follow::FollowingsRouter, forks::ForksRouter, fragments::FragmentsRouter, likes::LikesRouter,
+    reviews::ReviewsRouter,
 };
 use actix_web::{
     web::{self, Data},
     Scope,
 };
 
-pub fn routes(state: AppState) -> Scope {
+pub fn routes() -> Scope {
     const EMPTY_RESOURCE: &str = "";
 
     web::scope("/v1/users").service(
@@ -87,5 +84,4 @@ pub fn routes(state: AppState) -> Scope {
                     ),
                 ),
         )
-        .app_data(Data::new(state))
 }

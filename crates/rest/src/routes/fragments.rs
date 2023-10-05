@@ -3,7 +3,7 @@ use crate::{
     links::ResourceLink,
     model::fragments::{CreateFragmentRequest, FragmentPath, UpdateFragmentRequest},
     response::ApiResponse,
-    AppState,
+    server::AppState,
 };
 use actix_web::web::{Data, Json};
 use cqrs::command_bus::{
