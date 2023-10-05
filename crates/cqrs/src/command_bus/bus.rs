@@ -18,47 +18,21 @@ use storage::{
 };
 use tap::TapFallible;
 
-#[async_trait::async_trait]
-pub trait CommandBus {
-    async fn dispatch<C, A>(
-        &self,
-        actor: A,
-        command: C,
-        schedule_to: Option<DateTime>,
-    ) -> Result<Id, CommandBusError>
-    where
-        C: Command + Serialize,
-        A: ActorTrait + 'static;
-
-    async fn async_execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
-    where
-        C: Command<Event = EV> + 'static,
-        EV: Event + Serialize + 'static,
-        A: ActorTrait + 'static + Clone;
-
-    async fn execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
-    where
-        EV: Event + Serialize,
-        C: Command<Event = EV>,
-        A: ActorTrait + Clone + 'static;
-}
-
 #[derive(Clone)]
-pub struct SimpleCommandBus {
+pub struct CommandBus {
     pool: PgPool,
     clock: Arc<dyn Clock>,
     ids: Arc<dyn IdGenerator>,
 }
 
-impl SimpleCommandBus {
+impl CommandBus {
     pub fn new(pool: PgPool, clock: Arc<dyn Clock>, ids: Arc<dyn IdGenerator>) -> Self {
         Self { pool, clock, ids }
     }
 }
 
-#[async_trait::async_trait]
-impl CommandBus for SimpleCommandBus {
-    async fn dispatch<C, A>(
+impl CommandBus {
+    pub async fn dispatch<C, A>(
         &self,
         actor: A,
         command: C,
@@ -87,7 +61,7 @@ impl CommandBus for SimpleCommandBus {
             .map(|t| *t.id())?)
     }
 
-    async fn async_execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
+    pub async fn async_execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
         C: Command<Event = EV> + 'static,
         EV: Event + Serialize + 'static,
@@ -105,7 +79,7 @@ impl CommandBus for SimpleCommandBus {
         Ok(())
     }
 
-    async fn execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
+    pub async fn execute<C, A, EV>(&self, actor: A, command: C) -> Result<(), CommandBusError>
     where
         C: Command<Event = EV>,
         A: ActorTrait + Clone + 'static,

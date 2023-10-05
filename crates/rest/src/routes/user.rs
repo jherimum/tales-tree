@@ -1,4 +1,4 @@
-use crate::SingleIdPath;
+use crate::links::SingleIdPath;
 use actix_web::web::Path;
 
 pub type UserPath = Path<SingleIdPath>;

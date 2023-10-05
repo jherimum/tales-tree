@@ -1,10 +1,12 @@
 use crate::{
     extractors::user::UserExtractor,
-    model::{fragment_forks::ForkFragmentRequest, fragments::FragmentPath},
-    ApiResponse, AppState, ResourceLink,
+    links::ResourceLink,
+    model::{forks::ForkFragmentRequest, fragments::FragmentPath},
+    response::ApiResponse,
+    AppState,
 };
 use actix_web::web::{Data, Json};
-use cqrs::command_bus::{bus::CommandBus, command::fork_fragment::ForkFragmentCommandBuilder};
+use cqrs::command_bus::command::fork_fragment::ForkFragmentCommandBuilder;
 
 pub struct ForksRouter;
 
@@ -13,8 +15,8 @@ impl ForksRouter {
 
     pub const SINGLE_RESOURCE_NAME: &str = "fragment_fork";
 
-    pub async fn create<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn create(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         Json(payload): Json<ForkFragmentRequest>,
         path: FragmentPath,

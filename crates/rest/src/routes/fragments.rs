@@ -1,11 +1,12 @@
 use crate::{
     extractors::user::UserExtractor,
+    links::ResourceLink,
     model::fragments::{CreateFragmentRequest, FragmentPath, UpdateFragmentRequest},
-    ApiResponse, AppState, ResourceLink,
+    response::ApiResponse,
+    AppState,
 };
 use actix_web::web::{Data, Json};
 use cqrs::command_bus::{
-    bus::CommandBus,
     command::{
         create_fragment::CreateFragmentCommandBuilder,
         publish_fragment::{PublishFragmentCommandBuilder, PublishFragmentCommandError},
@@ -23,8 +24,8 @@ impl FragmentsRouter {
     pub const PUBLICATION_RESOURCE_NAME: &str = "publication";
     pub const SUBMIT_RESOURCE_NAME: &str = "submit";
 
-    pub async fn create<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn create(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         Json(payload): Json<CreateFragmentRequest>,
     ) -> ApiResponse<()> {
@@ -41,15 +42,12 @@ impl FragmentsRouter {
         }
     }
 
-    pub async fn delete<C: CommandBus>(
-        _: Data<AppState<C>>,
-        UserExtractor(_): UserExtractor,
-    ) -> ApiResponse<()> {
+    pub async fn delete(_: Data<AppState>, UserExtractor(_): UserExtractor) -> ApiResponse<()> {
         ApiResponse::Ok(None)
     }
 
-    pub async fn update<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn update(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         Json(payload): Json<UpdateFragmentRequest>,
         path: FragmentPath,
@@ -75,8 +73,8 @@ impl FragmentsRouter {
         }
     }
 
-    pub async fn publish<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn publish(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         path: FragmentPath,
     ) -> ApiResponse<()> {
@@ -97,8 +95,8 @@ impl FragmentsRouter {
         }
     }
 
-    pub async fn submit<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn submit(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         path: FragmentPath,
     ) -> ApiResponse<()> {

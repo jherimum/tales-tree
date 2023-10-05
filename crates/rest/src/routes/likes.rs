@@ -1,12 +1,10 @@
 use crate::{
-    extractors::user::UserExtractor, model::fragments::FragmentPath, ApiResponse, AppState,
+    extractors::user::UserExtractor, model::fragments::FragmentPath, response::ApiResponse,
+    AppState,
 };
 use actix_web::web::Data;
-use cqrs::command_bus::{
-    bus::CommandBus,
-    command::{
-        dislike_fragment::DislikeFragmentCommandBuilder, like_fragment::LikeFragmentCommandBuilder,
-    },
+use cqrs::command_bus::command::{
+    dislike_fragment::DislikeFragmentCommandBuilder, like_fragment::LikeFragmentCommandBuilder,
 };
 
 pub struct LikesRouter;
@@ -14,8 +12,8 @@ pub struct LikesRouter;
 impl LikesRouter {
     pub const COLLECTION_RESOURCE_NAME: &str = "likes";
 
-    pub async fn create<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn create(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         path: FragmentPath,
     ) -> ApiResponse<()> {
@@ -29,8 +27,8 @@ impl LikesRouter {
         }
     }
 
-    pub async fn delete<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn delete(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         path: FragmentPath,
     ) -> ApiResponse<()> {

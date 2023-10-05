@@ -1,9 +1,8 @@
 use super::user::UserPath;
-use crate::{extractors::user::UserExtractor, ApiResponse, AppState};
+use crate::{extractors::user::UserExtractor, response::ApiResponse, AppState};
 use actix_web::web::Data;
-use cqrs::command_bus::{
-    bus::CommandBus,
-    command::{follow_user::FollowUserCommandBuilder, unfollow_user::UnfollowUserCommandBuilder},
+use cqrs::command_bus::command::{
+    follow_user::FollowUserCommandBuilder, unfollow_user::UnfollowUserCommandBuilder,
 };
 
 pub struct FollowingsRouter;
@@ -11,8 +10,8 @@ pub struct FollowingsRouter;
 impl FollowingsRouter {
     const COLLECTION_RESOURCE_NAME: &'static str = "followings";
 
-    pub async fn create<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn create(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         path: UserPath,
     ) -> ApiResponse<()> {
@@ -26,8 +25,8 @@ impl FollowingsRouter {
         }
     }
 
-    pub async fn delete<C: CommandBus>(
-        state: Data<AppState<C>>,
+    pub async fn delete(
+        state: Data<AppState>,
         UserExtractor(user): UserExtractor,
         path: UserPath,
     ) -> ApiResponse<()> {

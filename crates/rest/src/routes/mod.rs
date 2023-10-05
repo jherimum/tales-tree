@@ -16,9 +16,8 @@ use actix_web::{
     web::{self, Data},
     Scope,
 };
-use cqrs::command_bus::bus::CommandBus;
 
-pub fn routes<C: CommandBus + 'static>(state: AppState<C>) -> Scope {
+pub fn routes(state: AppState) -> Scope {
     const EMPTY_RESOURCE: &str = "";
 
     web::scope("/v1/users").service(
@@ -27,8 +26,8 @@ pub fn routes<C: CommandBus + 'static>(state: AppState<C>) -> Scope {
             .service(
                 web::scope("/followings").service(
                     web::resource(EMPTY_RESOURCE)
-                        .route(web::post().to(FollowingsRouter::create::<C>))
-                        .route(web::delete().to(FollowingsRouter::delete::<C>)),
+                        .route(web::post().to(FollowingsRouter::create))
+                        .route(web::delete().to(FollowingsRouter::delete)),
                 ),
             ),
     );
@@ -37,36 +36,36 @@ pub fn routes<C: CommandBus + 'static>(state: AppState<C>) -> Scope {
         .service(
             web::resource(EMPTY_RESOURCE)
                 .name(FragmentsRouter::COLLECTION_RESOURCE_NAME)
-                .route(web::post().to(FragmentsRouter::create::<C>)),
+                .route(web::post().to(FragmentsRouter::create)),
         )
         .service(
             web::scope("/{fragment_id}")
                 .service(
                     web::resource(EMPTY_RESOURCE)
                         .name(FragmentsRouter::SINGLE_RESOURCE_NAME)
-                        .route(web::patch().to(FragmentsRouter::update::<C>))
-                        .route(web::delete().to(FragmentsRouter::delete::<C>)),
+                        .route(web::patch().to(FragmentsRouter::update))
+                        .route(web::delete().to(FragmentsRouter::delete)),
                 )
                 .service(
                     web::scope("/publication").service(
                         web::resource(EMPTY_RESOURCE)
                             .name(FragmentsRouter::PUBLICATION_RESOURCE_NAME)
-                            .route(web::post().to(FragmentsRouter::publish::<C>)),
+                            .route(web::post().to(FragmentsRouter::publish)),
                     ),
                 )
                 .service(
                     web::scope("/submit").service(
                         web::resource(EMPTY_RESOURCE)
                             .name(FragmentsRouter::PUBLICATION_RESOURCE_NAME)
-                            .route(web::post().to(FragmentsRouter::submit::<C>)),
+                            .route(web::post().to(FragmentsRouter::submit)),
                     ),
                 )
                 .service(
                     web::scope("/likes").service(
                         web::resource(EMPTY_RESOURCE)
                             .name(LikesRouter::COLLECTION_RESOURCE_NAME)
-                            .route(web::post().to(LikesRouter::create::<C>))
-                            .route(web::delete().to(LikesRouter::delete::<C>)),
+                            .route(web::post().to(LikesRouter::create))
+                            .route(web::delete().to(LikesRouter::delete)),
                     ),
                 )
                 .service(
@@ -74,7 +73,7 @@ pub fn routes<C: CommandBus + 'static>(state: AppState<C>) -> Scope {
                         .service(
                             web::resource(EMPTY_RESOURCE)
                                 .name(ReviewsRouter::COLLECTION_RESOURCE_NAME)
-                                .route(web::post().to(ReviewsRouter::create::<C>)),
+                                .route(web::post().to(ReviewsRouter::create)),
                         )
                         .service(web::scope("/{review_id}").service(
                             web::resource(EMPTY_RESOURCE).name(ReviewsRouter::SINGLE_RESOURCE_NAME),
@@ -84,7 +83,7 @@ pub fn routes<C: CommandBus + 'static>(state: AppState<C>) -> Scope {
                     web::scope("/forks").service(
                         web::resource(EMPTY_RESOURCE)
                             .name(ForksRouter::COLLECTION_RESOURCE_NAME)
-                            .route(web::post().to(ForksRouter::create::<C>)),
+                            .route(web::post().to(ForksRouter::create)),
                     ),
                 ),
         )

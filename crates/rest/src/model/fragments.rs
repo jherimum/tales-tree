@@ -1,8 +1,7 @@
+use crate::links::SingleIdPath;
 use actix_web::web::Path;
 use commons::fragment::Content;
 use serde::Deserialize;
-
-use crate::SingleIdPath;
 
 pub type FragmentPath = Path<SingleIdPath>;
 

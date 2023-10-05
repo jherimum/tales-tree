@@ -5,7 +5,6 @@ use ::commons::{
 use cqrs::{
     command_bus::{
         bus::CommandBus,
-        bus::SimpleCommandBus,
         command::create_fragment::{CreateFragmentCommand, CreateFragmentCommandBuilder},
     },
     events::FragmentCreatedEvent,
@@ -30,7 +29,7 @@ async fn test_command_bus(pool: PgPool) {
         .save(&pool)
         .await
         .unwrap();
-    let cb = SimpleCommandBus::new(
+    let cb = CommandBus::new(
         pool.clone(),
         Arc::new(MockClock::default()),
         Arc::new(MockIdGenerator::default()),
