@@ -1,6 +1,9 @@
-pub mod follower;
+pub mod follow;
 pub mod forks;
-pub mod tales;
+pub mod fragments;
+pub mod likes;
+pub mod reviews;
+pub mod user;
 
 use crate::AppState;
 use actix_web::Scope;

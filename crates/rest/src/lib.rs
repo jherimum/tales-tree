@@ -6,7 +6,7 @@ use actix_web::{
 };
 use commons::id::{Id, IdGenerator};
 use cqrs::command_bus::bus::CommandBus;
-use routes::{forks::TaleForksRouter, tales::TalesRouter};
+use routes::reviews::ReviewsRouter;
 use serde::Serialize;
 use std::{collections::HashMap, error::Error, sync::Arc};
 use url::Url;
@@ -15,21 +15,37 @@ pub mod extractors;
 pub mod model;
 pub mod routes;
 
+#[derive(Debug, Clone, Copy)]
+pub struct SingleIdPath(Id);
+
+impl From<SingleIdPath> for Id {
+    fn from(value: SingleIdPath) -> Self {
+        value.0
+    }
+}
+
+impl From<&SingleIdPath> for Id {
+    fn from(value: &SingleIdPath) -> Self {
+        value.0
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum ResourceLink {
-    Tale(Id),
-    Fork(Id, Id),
+    Fragment(Id),
+    Review(Id, Id),
 }
 
 impl ResourceLink {
     pub fn as_url(&self, req: &actix_web::HttpRequest) -> Result<Url, UrlGenerationError> {
         match self {
-            ResourceLink::Tale(id) => {
-                req.url_for(TalesRouter::SINGLE_RESOURCE_NAME, &[id.to_string()])
-            }
-            ResourceLink::Fork(tale_id, fork_id) => req.url_for(
-                TaleForksRouter::SINGLE_RESOURCE_NAME,
-                &[tale_id.to_string(), fork_id.to_string()],
+            ResourceLink::Fragment(id) => req.url_for(
+                crate::routes::fragments::FragmentsRouter::SINGLE_RESOURCE_NAME,
+                [id.to_string()],
+            ),
+            ResourceLink::Review(frag_id, review_id) => req.url_for(
+                ReviewsRouter::SINGLE_RESOURCE_NAME,
+                [frag_id.to_string(), review_id.to_string()],
             ),
         }
     }
