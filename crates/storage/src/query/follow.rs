@@ -4,7 +4,7 @@ use sqlx::PgExecutor;
 use crate::{model::follow::Follow, StorageError};
 
 #[async_trait::async_trait]
-impl ActiveFollow for Follow {
+impl QueryFollow for Follow {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         Ok(sqlx::query_as(
             r#"
@@ -77,7 +77,7 @@ impl ActiveFollow for Follow {
 }
 
 #[async_trait::async_trait]
-pub trait ActiveFollow: Send {
+pub trait QueryFollow: Send {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Follow, StorageError>;
 
     async fn delete<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<bool, StorageError>;

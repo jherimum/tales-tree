@@ -10,8 +10,8 @@ use cqrs::{
 };
 use sqlx::PgPool;
 use storage::{
-    active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentBuilder, FragmentState, Path},
+    query::fragment::QueryFragment,
 };
 
 mod commons;

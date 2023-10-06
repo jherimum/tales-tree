@@ -9,8 +9,8 @@ use commons::{
     id::Id,
 };
 use storage::{
-    active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentState},
+    query::fragment::QueryFragment,
 };
 use tap::TapFallible;
 

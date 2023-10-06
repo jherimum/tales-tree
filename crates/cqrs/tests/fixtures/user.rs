@@ -1,8 +1,8 @@
 use commons::id::Id;
 use sqlx::PgPool;
 use storage::{
-    active::user::ActiveUser,
     model::user::{User, UserBuilder},
+    query::user::QueryUser,
 };
 
 pub async fn create_user(pool: &PgPool) -> User {

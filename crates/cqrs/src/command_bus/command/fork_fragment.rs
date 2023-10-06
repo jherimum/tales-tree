@@ -5,10 +5,10 @@ use crate::events::FragmentForkedEvent;
 use commons::actor::ActorType;
 use commons::fragment::Content;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
-use storage::active::user::ActiveUser;
+use storage::query::user::QueryUser;
 use storage::{
-    active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentBuilder},
+    query::fragment::QueryFragment,
 };
 use tap::TapFallible;
 

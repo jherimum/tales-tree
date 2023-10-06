@@ -4,8 +4,8 @@ use crate::command_bus::error::CommandBusError;
 use crate::events::UserFollowedEvent;
 use commons::{commands::CommandType, id::Id};
 use storage::{
-    active::follow::ActiveFollow,
     model::follow::{Follow, FollowBuilder},
+    query::follow::QueryFollow,
 };
 use tap::TapFallible;
 

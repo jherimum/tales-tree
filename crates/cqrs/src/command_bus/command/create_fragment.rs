@@ -8,8 +8,8 @@ use derive_builder::Builder;
 use derive_getters::Getters;
 use serde::{Deserialize, Serialize};
 use storage::{
-    active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentBuilder},
+    query::fragment::QueryFragment,
 };
 use tap::TapFallible;
 

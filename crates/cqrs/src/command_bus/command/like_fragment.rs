@@ -4,11 +4,11 @@ use crate::command_bus::error::CommandBusError;
 use crate::events::FragmentLikedEvent;
 use commons::{commands::CommandType, id::Id};
 use storage::{
-    active::{fragment::ActiveFragment, like::ActiveLike},
     model::{
         fragment::Fragment,
         like::{Like, LikeBuilder},
     },
+    query::{fragment::QueryFragment, like::QueryLike},
 };
 use tap::TapFallible;
 

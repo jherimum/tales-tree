@@ -3,7 +3,7 @@ use sqlx::PgExecutor;
 use crate::{model::event::DbEvent, StorageError};
 
 #[async_trait::async_trait]
-impl ActiveEvent for DbEvent {
+impl QueryEvent for DbEvent {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         Ok(sqlx::query_as(
             r#"
@@ -32,7 +32,7 @@ impl ActiveEvent for DbEvent {
 }
 
 #[async_trait::async_trait]
-pub trait ActiveEvent {
+pub trait QueryEvent {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<DbEvent, StorageError>;
 
     async fn all<'e, E: PgExecutor<'e>>(exec: E) -> Result<Vec<DbEvent>, StorageError>;

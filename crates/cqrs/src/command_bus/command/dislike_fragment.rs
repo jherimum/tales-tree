@@ -4,8 +4,8 @@ use crate::command_bus::error::CommandBusError;
 use crate::events::FragmentDislikedEvent;
 use commons::{actor::ActorTrait, commands::CommandType, id::Id};
 use storage::{
-    active::{fragment::ActiveFragment, like::ActiveLike},
     model::{fragment::Fragment, like::Like},
+    query::{fragment::QueryFragment, like::QueryLike},
 };
 use tap::TapFallible;
 

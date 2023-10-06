@@ -29,8 +29,8 @@ use ::commons::{
 };
 use sqlx::PgPool;
 use storage::{
-    active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentBuilder},
+    query::fragment::QueryFragment,
 };
 
 #[sqlx::test(migrator = "storage::MIGRATOR")]

@@ -1,11 +1,11 @@
 use commons::{id::Id, time::DateTime};
 use sqlx::PgPool;
 use storage::{
-    active::fragment::ActiveFragment,
     model::{
         fragment::{Fragment, FragmentBuilder, FragmentState, Path},
         user::User,
     },
+    query::fragment::QueryFragment,
 };
 
 pub async fn create_draft(pool: &PgPool, user: &User, content: &str, end: bool) -> Fragment {

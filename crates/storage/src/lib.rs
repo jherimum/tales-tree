@@ -6,8 +6,8 @@ use sqlx::{
     ConnectOptions, Error, PgPool,
 };
 
-pub mod active;
 pub mod model;
+pub mod query;
 
 pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!();
 

@@ -5,8 +5,8 @@ use crate::events::FragmentPublishedEvent;
 use commons::actor::{Actor, ActorType};
 use commons::{commands::CommandType, id::Id};
 use storage::{
-    active::fragment::ActiveFragment,
     model::fragment::{Fragment, FragmentState},
+    query::fragment::QueryFragment,
 };
 use tap::TapFallible;
 

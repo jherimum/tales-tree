@@ -4,7 +4,7 @@ use sqlx::PgExecutor;
 use crate::{model::like::Like, StorageError};
 
 #[async_trait::async_trait]
-impl ActiveLike for Like {
+impl QueryLike for Like {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         Ok(sqlx::query_as(
             r#"
@@ -57,7 +57,7 @@ impl ActiveLike for Like {
 }
 
 #[async_trait::async_trait]
-pub trait ActiveLike {
+pub trait QueryLike {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Like, StorageError>;
 
     async fn delete<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<bool, StorageError>;

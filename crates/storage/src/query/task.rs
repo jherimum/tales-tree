@@ -3,7 +3,7 @@ use sqlx::PgExecutor;
 use crate::{model::task::Task, StorageError};
 
 #[async_trait::async_trait]
-impl ActiveTask for Task {
+impl QueryTask for Task {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Self, StorageError> {
         Ok(sqlx::query_as(
             r#"
@@ -24,6 +24,6 @@ impl ActiveTask for Task {
 }
 
 #[async_trait::async_trait]
-pub trait ActiveTask {
+pub trait QueryTask {
     async fn save<'e, E: PgExecutor<'e>>(self, exec: E) -> Result<Task, StorageError>;
 }

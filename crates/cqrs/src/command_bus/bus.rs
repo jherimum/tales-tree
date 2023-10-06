@@ -9,11 +9,11 @@ use serde::Serialize;
 use sqlx::{postgres::any::AnyConnectionBackend, PgPool, Postgres, Transaction};
 use std::{marker::PhantomData, sync::Arc};
 use storage::{
-    active::{event::ActiveEvent, task::ActiveTask},
     model::{
         event::{DbEvent, DbEventBuilder, EventData},
         task::TaskBuilder,
     },
+    query::{event::QueryEvent, task::QueryTask},
     StorageError,
 };
 use tap::TapFallible;

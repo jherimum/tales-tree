@@ -6,11 +6,11 @@ use commons::actor::{Actor, ActorType};
 use commons::review::Comment;
 use commons::{commands::CommandType, id::Id};
 use storage::{
-    active::{fragment::ActiveFragment, review::ActiveReview},
     model::{
         fragment::{Fragment, FragmentState},
         review::{Review, ReviewAction, ReviewBuilder},
     },
+    query::{fragment::QueryFragment, review::QueryReview},
 };
 use tap::TapFallible;
 

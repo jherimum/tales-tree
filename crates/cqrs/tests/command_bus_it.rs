@@ -12,8 +12,8 @@ use cqrs::{
 use sqlx::PgPool;
 use std::sync::Arc;
 use storage::{
-    active::{event::ActiveEvent, user::ActiveUser},
     model::{event::DbEvent, user::UserBuilder},
+    query::{event::QueryEvent, user::QueryUser},
 };
 
 mod commons;

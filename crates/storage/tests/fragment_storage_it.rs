@@ -1,11 +1,11 @@
 use commons::{id::Id, time::DateTime};
 use sqlx::PgPool;
 use storage::{
-    active::{fragment::ActiveFragment, user::ActiveUser},
     model::{
         fragment::{Fragment, FragmentBuilder, FragmentState, Path},
         user::{User, UserBuilder},
     },
+    query::{fragment::QueryFragment, user::QueryUser},
 };
 
 async fn create_user(pool: &PgPool) -> User {

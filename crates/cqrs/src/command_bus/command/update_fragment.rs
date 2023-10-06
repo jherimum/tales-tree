@@ -5,7 +5,7 @@ use commons::actor::{Actor, ActorType};
 use commons::fragment::Content;
 use commons::{commands::CommandType, id::Id};
 use derive_getters::Getters;
-use storage::{active::fragment::ActiveFragment, model::fragment::Fragment};
+use storage::{model::fragment::Fragment, query::fragment::QueryFragment};
 use tap::TapFallible;
 
 use super::Command;

@@ -6,10 +6,10 @@ use crate::{
     StorageError,
 };
 
-use super::user::ActiveUser;
+use super::user::QueryUser;
 
 #[async_trait::async_trait]
-impl ActiveFragment for Fragment {
+impl QueryFragment for Fragment {
     async fn author<'e, E: PgExecutor<'e>>(&self, exec: E) -> Result<User, StorageError> {
         Ok(User::find(exec, self.author_id()).await?.unwrap())
     }
@@ -81,7 +81,7 @@ impl ActiveFragment for Fragment {
 }
 
 #[async_trait::async_trait]
-pub trait ActiveFragment {
+pub trait QueryFragment {
     async fn author<'e, E: PgExecutor<'e>>(&self, exec: E) -> Result<User, StorageError>;
 
     async fn get_parent<'e, E: PgExecutor<'e>>(
