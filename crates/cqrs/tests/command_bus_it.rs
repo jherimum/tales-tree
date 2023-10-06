@@ -49,7 +49,7 @@ async fn test_command_bus(pool: PgPool) {
     let events = DbEvent::all(&pool).await.unwrap();
 
     if let Some(e) = events.first() {
-        let event_data = e.event_data().into_event::<FragmentCreatedEvent>();
+        let _event_data = e.event_data().into_event::<FragmentCreatedEvent>();
         //assert_eq!(*e.event_type(), EventType::FragmentCreated);
         //assert_eq!(event_data.content(), "First tale".to_string());
     } else {

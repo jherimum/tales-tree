@@ -10,8 +10,8 @@ impl FromRequest for UserExtractor {
     type Future = Ready<Result<Self, Self::Error>>;
 
     fn from_request(
-        req: &actix_web::HttpRequest,
-        payload: &mut actix_web::dev::Payload,
+        _req: &actix_web::HttpRequest,
+        _payload: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         todo!()
     }
