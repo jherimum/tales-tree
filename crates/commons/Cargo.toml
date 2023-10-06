@@ -19,6 +19,14 @@ tap = { workspace = true }
 anyhow = { workspace = true }
 config = { workspace = true }
 secrecy = { workspace = true, features = ["serde"] }
+tracing-subscriber = { workspace = true, features = [
+    "env-filter",
+    "json",
+    "registry",
+] }
+tracing-bunyan-formatter = { workspace = true }
+tracing-log = { workspace = true }
+
 
 [dev-dependencies]
 rstest = { workspace = true }

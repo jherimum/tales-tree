@@ -15,3 +15,4 @@ serde = { workspace = true }
 async-trait = { workspace = true }
 url = { workspace = true, features = ["serde"] }
 clap = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["full"] }

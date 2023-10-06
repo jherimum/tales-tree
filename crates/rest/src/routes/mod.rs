@@ -1,23 +1,24 @@
 pub mod follow;
 pub mod forks;
 pub mod fragments;
+pub mod health;
 pub mod likes;
 pub mod reviews;
 pub mod user;
 
 use crate::routes::{
-    follow::FollowingsRouter, forks::ForksRouter, fragments::FragmentsRouter, likes::LikesRouter,
-    reviews::ReviewsRouter,
+    follow::FollowingsRouter, forks::ForksRouter, fragments::FragmentsRouter, health::HealthRouter,
+    likes::LikesRouter, reviews::ReviewsRouter,
 };
 use actix_web::{
-    web::{self, Data},
+    web::{self},
     Scope,
 };
 
 pub fn routes() -> Scope {
     const EMPTY_RESOURCE: &str = "";
 
-    web::scope("/v1/users").service(
+    let users = web::scope("/v1/users").service(
         web::scope("/{user_id}")
             .service(web::resource(EMPTY_RESOURCE))
             .service(
@@ -29,7 +30,7 @@ pub fn routes() -> Scope {
             ),
     );
 
-    web::scope("/v1/fragments")
+    let fragments = web::scope("/v1/fragments")
         .service(
             web::resource(EMPTY_RESOURCE)
                 .name(FragmentsRouter::COLLECTION_RESOURCE_NAME)
@@ -83,5 +84,12 @@ pub fn routes() -> Scope {
                             .route(web::post().to(ForksRouter::create)),
                     ),
                 ),
+        );
+
+    web::scope("")
+        .service(
+            web::resource(HealthRouter::HEALTH_RESOURCE_NAME)
+                .route(web::get().to(HealthRouter::get)),
         )
+        .service(web::scope("/api").service(fragments).service(users))
 }

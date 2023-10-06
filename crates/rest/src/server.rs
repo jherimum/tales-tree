@@ -6,7 +6,7 @@ use commons::{
     time::SystemClock,
 };
 use cqrs::command_bus::bus::CommandBus;
-use std::sync::Arc;
+use std::{net::TcpListener, sync::Arc};
 use storage::pool_from_settings;
 
 #[derive(Clone)]
@@ -57,20 +57,34 @@ macro_rules! build_app {
     };
 }
 
-pub struct Server;
+pub struct Server(dev::Server);
 
 impl Server {
-    pub fn from_settings(settings: &Settings) -> Result<dev::Server, anyhow::Error> {
+    pub async fn from_settings(settings: &Settings) -> Result<Self, anyhow::Error> {
         let ids = Arc::new(StdIdGenerator);
         let state = AppState {
             command_bus: Arc::new(CommandBus::new(
-                pool_from_settings(settings),
+                pool_from_settings(settings)
+                    .await
+                    .map_err(anyhow::Error::from)?,
                 Arc::new(SystemClock),
                 ids.clone(),
             )),
             ids: ids,
         };
 
-        Ok(HttpServer::new(move || build_app!(state.clone())).run())
+        Ok(Self(
+            HttpServer::new(move || build_app!(state.clone()))
+                .listen(Self::listener(settings)?)?
+                .run(),
+        ))
+    }
+
+    pub async fn run(self) -> Result<(), std::io::Error> {
+        self.0.await
+    }
+
+    fn listener(settings: &Settings) -> Result<TcpListener, std::io::Error> {
+        TcpListener::bind(format!("{}:{}", settings.server.host, settings.server.port))
     }
 }

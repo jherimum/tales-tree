@@ -13,6 +13,7 @@ const BASE_CONFIG_FILENAME: &str = "base.yaml";
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Settings {
+    pub application_name: String,
     pub server: ServerSettings,
     pub database: DatabaseSettings,
 }
@@ -72,8 +73,7 @@ impl Settings {
                 config::Environment::with_prefix("w")
                     .try_parsing(true)
                     .separator("__")
-                    .list_separator(",")
-                    .with_list_parse_key("redis.cluster_urls"),
+                    .list_separator(","),
             )
             .build()
             .tap_err(|e| tracing::error!("{:?}", e))?;

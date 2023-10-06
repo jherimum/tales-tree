@@ -1,0 +1,132 @@
+[env] ## tells cargo make that we're in the context of a Cargo workspace
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[config] ## we want most/all of our tasks to run in the context of a workspace
+default_to_workspace = false
+
+[tasks.rest-api]
+install_crate = "cargo-watch"
+cwd = "./crates/rest"
+command = "cargo"
+args = ["watch", "-x", "clippy", "-x", "run | bunyan"]
+dependencies = ["postgres", "neo4j"]
+
+
+[tasks.format]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.build]
+command = "cargo"
+args = ["build"]
+dependencies = ["clean"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+dependencies = ["clean"]
+
+[tasks.fix]
+command = "cargo"
+args = ["fix", "--allow-dirty"]
+
+[tasks.lint]
+command = "cargo"
+args = ["clippy"]
+
+[tasks.my-flow]
+dependencies = ["format", "build", "test"]
+
+## docker
+[tasks.postgres]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.postgres.yml",
+    "up",
+    "--build",
+    "--detach",
+]
+
+[tasks.neo4j]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.neo4j.yml",
+    "up",
+    "--build",
+    "--detach",
+]
+
+[tasks.docker]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.postgres.yml",
+    "-f",
+    "./deploy/docker-compose.neo4j.yml",
+    "-f",
+    "./deploy/docker-compose.rest.yml",
+    "up",
+    "--build",
+]
+
+[tasks.docker-build]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.postgres.yml",
+    "-f",
+    "./deploy/docker-compose.neo4j.yml",
+    "-f",
+    "./deploy/docker-compose.rest.yml",
+    "build",
+]
+
+[tasks.docker-start]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.postgres.yml",
+    "-f",
+    "./deploy/docker-compose.neo4j.yml",
+    "-f",
+    "./deploy/docker-compose.rest.yml",
+    "start",
+]
+
+[tasks.docker-stop]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.postgres.yml",
+    "-f",
+    "./deploy/docker-compose.neo4j.yml",
+    "-f",
+    "./deploy/docker-compose.rest.yml",
+    "stop",
+]
+
+[tasks.docker-rm]
+command = "docker"
+args = [
+    "compose",
+    "-f",
+    "./deploy/docker-compose.postgres.yml",
+    "-f",
+    "./deploy/docker-compose.neo4j.yml",
+    "-f",
+    "./deploy/docker-compose.rest.yml",
+    "rm",
+]
