@@ -2,7 +2,7 @@ use crate::{
     extractors::user::UserExtractor,
     links::ResourceLink,
     model::fragments::{CreateFragmentRequest, FragmentPath, UpdateFragmentRequest},
-    response::ApiResponse,
+    response::{ApiError, ApiResponse},
     server::AppState,
 };
 use actix_web::web::{Data, Json};
@@ -38,7 +38,7 @@ impl FragmentsRouter {
 
         match state.command_bus.execute(user, command).await {
             Ok(_) => ApiResponse::Created(None, Some(ResourceLink::Fragment(id))),
-            Err(e) => ApiResponse::InternalServerError(e.into()),
+            Err(e) => ApiError::InternalServerError(e.into()).into(),
         }
     }
 
@@ -68,7 +68,7 @@ impl FragmentsRouter {
                     UpdateFragmentCommandError::NonEditableFragment(_) => todo!(),
                     UpdateFragmentCommandError::NonEndabledFragment(_) => todo!(),
                 },
-                _ => ApiResponse::InternalServerError(e.into()),
+                _ => ApiError::InternalServerError(e.into()).into(),
             },
         }
     }
@@ -90,7 +90,7 @@ impl FragmentsRouter {
                     PublishFragmentCommandError::InvalidState(_) => todo!(),
                     PublishFragmentCommandError::Forbidden(_) => todo!(),
                 },
-                _ => ApiResponse::InternalServerError(e.into()),
+                _ => ApiError::InternalServerError(e.into()).into(),
             },
         }
     }
@@ -112,7 +112,7 @@ impl FragmentsRouter {
                     SubmitForkCommandError::Forbidden(_) => todo!(),
                     SubmitForkCommandError::InvalidState(_) => todo!(),
                 },
-                _ => ApiResponse::InternalServerError(e.into()),
+                _ => ApiError::InternalServerError(e.into()).into(),
             },
         }
     }

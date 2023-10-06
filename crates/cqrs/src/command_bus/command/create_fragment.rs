@@ -46,6 +46,7 @@ impl Command for CreateFragmentCommand {
             .map_err(anyhow::Error::from)?
             .save(ctx.tx().as_mut())
             .await
+            .tap_ok(|_| tracing::info!("Fragment created"))
             .map(Into::into)
             .map(Some)
             .tap_err(|e| tracing::error!("Failed to save fragment:{e}"))?)

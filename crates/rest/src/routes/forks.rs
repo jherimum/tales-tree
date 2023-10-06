@@ -2,10 +2,13 @@ use crate::{
     extractors::user::UserExtractor,
     links::ResourceLink,
     model::{forks::ForkFragmentRequest, fragments::FragmentPath},
-    response::ApiResponse,
+    response::{ApiError, ApiResponse},
     server::AppState,
 };
-use actix_web::web::{Data, Json};
+use actix_web::{
+    web::{Data, Json},
+    Responder,
+};
 use cqrs::command_bus::command::fork_fragment::ForkFragmentCommandBuilder;
 
 pub struct ForksRouter;
@@ -32,7 +35,7 @@ impl ForksRouter {
         match state.command_bus.execute(user, command).await {
             Ok(_) => ApiResponse::Created(None, Some(ResourceLink::Fragment(fork_id))),
             Err(e) => match e {
-                _ => ApiResponse::InternalServerError(Box::new(e)),
+                _ => ApiError::InternalServerError(Box::new(e)).into(),
             },
         }
     }

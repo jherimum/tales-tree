@@ -2,7 +2,7 @@ use crate::{
     extractors::user::UserExtractor,
     links::ResourceLink,
     model::{fragments::FragmentPath, reviews::CreateReviewRequest},
-    response::ApiResponse,
+    response::{ApiError, ApiResponse},
     server::AppState,
 };
 use actix_web::web::{Data, Json};
@@ -37,7 +37,7 @@ impl ReviewsRouter {
                     review_id,
                 )),
             ),
-            Err(e) => ApiResponse::InternalServerError(e.into()),
+            Err(e) => ApiError::InternalServerError(e.into()).into(),
         }
     }
 }

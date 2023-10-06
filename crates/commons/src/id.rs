@@ -1,5 +1,5 @@
 use mockall::automock;
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 #[automock]
 pub trait IdGenerator: Send + Sync {
@@ -18,6 +18,22 @@ impl IdGenerator for StdIdGenerator {
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct Id(uuid::Uuid);
+
+impl FromStr for Id {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(uuid::Uuid::parse_str(s)?))
+    }
+}
+
+impl TryFrom<&str> for Id {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        FromStr::from_str(value)
+    }
+}
 
 impl Display for Id {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

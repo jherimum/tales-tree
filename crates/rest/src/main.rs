@@ -4,6 +4,7 @@ use tokio::join;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    std::env::set_var("RUST_LOG", "debug");
     init_tracing();
     let settings = Settings::load()?;
     let server = Server::from_settings(&settings).await?;

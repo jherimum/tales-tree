@@ -21,5 +21,6 @@ mockall = { workspace = true }
 tracing = { workspace = true }
 derive_setters = { workspace = true }
 secrecy = { workspace = true }
+tap = { workspace = true }
 
 [dev-dependencies]

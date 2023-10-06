@@ -1,5 +1,7 @@
 use crate::{
-    extractors::user::UserExtractor, model::fragments::FragmentPath, response::ApiResponse,
+    extractors::user::UserExtractor,
+    model::fragments::FragmentPath,
+    response::{ApiError, ApiResponse},
     server::AppState,
 };
 use actix_web::web::Data;
@@ -23,7 +25,7 @@ impl LikesRouter {
             .unwrap();
         match state.command_bus.execute(user, command).await {
             Ok(_) => ApiResponse::Created(None, None),
-            Err(e) => ApiResponse::InternalServerError(e.into()),
+            Err(e) => ApiError::InternalServerError(e.into()).into(),
         }
     }
 
@@ -38,7 +40,7 @@ impl LikesRouter {
             .unwrap();
         match state.command_bus.execute(user, command).await {
             Ok(_) => ApiResponse::Created(None, None),
-            Err(e) => ApiResponse::InternalServerError(e.into()),
+            Err(e) => ApiError::InternalServerError(e.into()).into(),
         }
     }
 }

@@ -16,3 +16,6 @@ async-trait = { workspace = true }
 url = { workspace = true, features = ["serde"] }
 clap = { workspace = true, features = ["derive"] }
 tokio = { workspace = true, features = ["full"] }
+thiserror = { workspace = true }
+sqlx = { workspace = true, features = ["postgres"] }
+env_logger = { workspace = true }

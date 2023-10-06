@@ -1,4 +1,5 @@
 use crate::routes::routes;
+use actix_web::web::Data;
 use actix_web::{dev, App, HttpServer};
 use commons::{
     configuration::settings::Settings,
@@ -6,6 +7,7 @@ use commons::{
     time::SystemClock,
 };
 use cqrs::command_bus::bus::CommandBus;
+use sqlx::PgPool;
 use std::{net::TcpListener, sync::Arc};
 use storage::pool_from_settings;
 
@@ -13,13 +15,14 @@ use storage::pool_from_settings;
 pub struct AppState {
     pub command_bus: Arc<CommandBus>,
     pub ids: Arc<dyn IdGenerator>,
+    pub pool: PgPool,
 }
 
 #[macro_export]
 macro_rules! build_app {
     ($state: expr) => {
         App::new()
-            .app_data($state)
+            .app_data(Data::new($state))
             // Middleware is applied LIFO
             // These will wrap all outbound responses with matching status codes.
             //.wrap(ErrorHandlers::new().handler(StatusCode::NOT_FOUND, HandlerError::render_404))
@@ -62,15 +65,15 @@ pub struct Server(dev::Server);
 impl Server {
     pub async fn from_settings(settings: &Settings) -> Result<Self, anyhow::Error> {
         let ids = Arc::new(StdIdGenerator);
+        let pool = pool_from_settings(settings).await?;
         let state = AppState {
             command_bus: Arc::new(CommandBus::new(
-                pool_from_settings(settings)
-                    .await
-                    .map_err(anyhow::Error::from)?,
+                pool.clone(),
                 Arc::new(SystemClock),
                 ids.clone(),
             )),
             ids: ids,
+            pool: pool.clone(),
         };
 
         Ok(Self(

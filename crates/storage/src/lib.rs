@@ -27,10 +27,18 @@ pub trait Entity {
     }
 }
 
+pub async fn migrate(pool: &PgPool) -> Result<(), sqlx::Error> {
+    tracing::info!("Migration started");
+    sqlx::migrate!().run(pool).await.unwrap();
+    tracing::info!("Migrations finished");
+    Ok(())
+}
 pub async fn pool_from_settings(settings: &Settings) -> Result<PgPool, Error> {
     let option = &ConnectionOptions(&settings);
     let pool: PgPoolOptions = option.into();
-    pool.connect_with(option.into()).await
+    let pool = pool.connect_with(option.into()).await.unwrap();
+    migrate(&pool).await?;
+    Ok(pool)
 }
 
 pub struct ConnectionOptions<'s>(&'s Settings);

@@ -158,9 +158,12 @@ where
 
         match result {
             Ok(result) => {
-                if result.is_some() {
-                    self.save_event(&mut ctx, result.unwrap()).await?;
+                if let Some(event) = result {
+                    self.save_event(&mut ctx, event)
+                        .await
+                        .tap_err(|e| tracing::error!("Failed to save event: {e}"))?;
                 }
+
                 ctx.tx()
                     .as_mut()
                     .commit()
